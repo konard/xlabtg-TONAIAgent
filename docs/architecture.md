@@ -23,7 +23,11 @@ The system is designed to support millions of users and agents operating 24/7.
 11. [Observability and Monitoring](#observability-and-monitoring)
 12. [Developer Platform](#developer-platform)
 13. [Admin and Control Layer](#admin-and-control-layer)
-14. [Technical Decisions and Trade-offs](#technical-decisions-and-trade-offs)
+14. [Agent Economy](#agent-economy)
+15. [Multi-Agent Architecture](#multi-agent-architecture)
+16. [Cross-Chain Roadmap](#cross-chain-roadmap)
+17. [AI Safety and Governance](#ai-safety-and-governance)
+18. [Technical Decisions and Trade-offs](#technical-decisions-and-trade-offs)
 
 ---
 
@@ -2198,24 +2202,364 @@ sequenceDiagram
 
 ## Agent Lifecycle Management
 
+The Agent Lifecycle defines the complete journey of an agent from creation to termination. This structured approach ensures enterprise-grade reliability, compliance, and auditability.
+
+### Agent Lifecycle Stages
+
+```mermaid
+flowchart LR
+    subgraph Creation["1️⃣ Creation"]
+        C1[User Request]
+        C2[Config Validation]
+        C3[Agent Instantiation]
+    end
+
+    subgraph Funding["2️⃣ Funding"]
+        F1[Wallet Creation]
+        F2[Initial Deposit]
+        F3[Balance Verification]
+    end
+
+    subgraph Activation["3️⃣ Activation"]
+        A1[Strategy Assignment]
+        A2[Permission Setup]
+        A3[Agent Start]
+    end
+
+    subgraph Execution["4️⃣ Strategy Execution"]
+        E1[Market Analysis]
+        E2[Decision Making]
+        E3[Trade Execution]
+    end
+
+    subgraph Monitoring["5️⃣ Monitoring"]
+        M1[Performance Tracking]
+        M2[Risk Assessment]
+        M3[Health Checks]
+    end
+
+    subgraph Optimization["6️⃣ Optimization"]
+        O1[Parameter Tuning]
+        O2[Strategy Refinement]
+        O3[Learning Updates]
+    end
+
+    subgraph Suspension["7️⃣ Suspension"]
+        S1[Pause Operations]
+        S2[Hold Assets]
+        S3[Await Action]
+    end
+
+    subgraph Migration["8️⃣ Migration"]
+        MG1[State Export]
+        MG2[Version Upgrade]
+        MG3[State Import]
+    end
+
+    subgraph Termination["9️⃣ Termination"]
+        T1[Asset Withdrawal]
+        T2[State Archival]
+        T3[Resource Cleanup]
+    end
+
+    Creation --> Funding
+    Funding --> Activation
+    Activation --> Execution
+    Execution --> Monitoring
+    Monitoring --> Optimization
+    Optimization --> Execution
+
+    Monitoring --> Suspension
+    Suspension --> Activation
+    Monitoring --> Migration
+    Migration --> Activation
+    Suspension --> Termination
+```
+
+### Lifecycle Stage Details
+
+#### 1. Creation Stage
+
+The creation stage initializes a new agent with validated configuration.
+
+```yaml
+creation_stage:
+  triggers:
+    - user_request
+    - api_call
+    - template_instantiation
+
+  validations:
+    - config_schema_check
+    - permission_compatibility
+    - resource_availability
+    - rate_limit_check
+
+  outputs:
+    - agent_id
+    - initial_state
+    - audit_record
+
+  duration_target: "<5 seconds"
+```
+
+#### 2. Funding Stage
+
+The funding stage establishes the agent's wallet and initial capital.
+
+```yaml
+funding_stage:
+  wallet_creation:
+    type: "highload_v3"
+    key_generation: "mpc_threshold"
+    backup_creation: true
+
+  deposit_requirements:
+    minimum_balance: 10  # TON
+    gas_reserve: 1       # TON
+    verification_confirmations: 2
+
+  security_checks:
+    - wallet_derivation_verification
+    - deposit_source_validation
+    - aml_screening
+
+  outputs:
+    - wallet_address
+    - funding_status
+    - balance_snapshot
+```
+
+#### 3. Activation Stage
+
+The activation stage configures strategies and permissions, then starts the agent.
+
+```yaml
+activation_stage:
+  strategy_assignment:
+    template_loading: true
+    parameter_validation: true
+    backtest_required: "recommended"
+
+  permission_setup:
+    token_whitelists: true
+    protocol_whitelists: true
+    limit_configuration: true
+
+  health_verification:
+    connectivity_check: true
+    data_feed_validation: true
+    risk_engine_sync: true
+
+  outputs:
+    - active_strategy_id
+    - permission_set
+    - activation_timestamp
+```
+
+#### 4. Strategy Execution Stage
+
+The execution stage is where the agent actively trades and manages positions.
+
+```yaml
+execution_stage:
+  execution_loop:
+    trigger_evaluation: "continuous"
+    condition_check_interval: "1s"
+    action_execution: "immediate"
+
+  safeguards:
+    pre_execution_validation: true
+    post_execution_verification: true
+    rollback_capability: true
+
+  metrics_collected:
+    - execution_latency
+    - success_rate
+    - slippage_actual
+    - gas_consumed
+
+  outputs:
+    - trade_records
+    - position_updates
+    - performance_deltas
+```
+
+#### 5. Monitoring Stage
+
+Continuous monitoring ensures agent health and performance.
+
+```yaml
+monitoring_stage:
+  health_checks:
+    frequency: "30s"
+    checks:
+      - wallet_balance
+      - strategy_state
+      - connection_status
+      - risk_compliance
+
+  performance_tracking:
+    metrics:
+      - pnl_absolute
+      - pnl_percentage
+      - sharpe_ratio
+      - max_drawdown
+
+  anomaly_detection:
+    enabled: true
+    models:
+      - statistical_deviation
+      - ml_anomaly_classifier
+
+  alert_triggers:
+    - performance_degradation
+    - risk_limit_approach
+    - unusual_activity
+    - system_error
+```
+
+#### 6. Optimization Stage
+
+The optimization stage improves agent performance through learning and tuning.
+
+```yaml
+optimization_stage:
+  parameter_tuning:
+    method: "bayesian_optimization"
+    frequency: "weekly"
+    user_approval_required: true
+
+  strategy_refinement:
+    backtesting: true
+    paper_trading_validation: "24h"
+    gradual_rollout: true
+
+  learning_updates:
+    memory_consolidation: true
+    pattern_recognition_update: true
+    risk_model_recalibration: true
+
+  constraints:
+    max_parameter_change: "20%"
+    rollback_threshold: "-5%"
+```
+
+#### 7. Suspension Stage
+
+Temporary pause for maintenance, risk events, or user request.
+
+```yaml
+suspension_stage:
+  triggers:
+    - user_request
+    - risk_limit_breach
+    - system_maintenance
+    - compliance_hold
+
+  actions:
+    - cancel_pending_orders
+    - hold_current_positions
+    - disable_new_executions
+    - notify_stakeholders
+
+  state_preservation:
+    strategy_state: "frozen"
+    position_snapshot: "recorded"
+    pending_analysis: "queued"
+
+  resume_requirements:
+    - user_confirmation
+    - risk_clearance
+    - health_verification
+```
+
+#### 8. Migration Stage
+
+Upgrading agent version or migrating to new infrastructure.
+
+```yaml
+migration_stage:
+  triggers:
+    - version_upgrade
+    - infrastructure_change
+    - user_requested_migration
+
+  process:
+    state_export:
+      - configuration
+      - positions
+      - history
+      - memories
+
+    validation:
+      - state_integrity_check
+      - compatibility_verification
+
+    state_import:
+      - restore_configuration
+      - verify_positions
+      - resume_strategy
+
+  rollback:
+    enabled: true
+    timeout: "24h"
+    trigger: "user_request_or_failure"
+```
+
+#### 9. Termination Stage
+
+Graceful shutdown with complete asset withdrawal and cleanup.
+
+```yaml
+termination_stage:
+  triggers:
+    - user_request
+    - inactivity_timeout
+    - compliance_requirement
+
+  process:
+    - cancel_all_pending_orders
+    - close_all_positions  # optional, user choice
+    - withdraw_assets_to_user
+    - archive_state_and_history
+    - cleanup_resources
+
+  data_retention:
+    trade_history: "permanent"
+    audit_logs: "7 years"
+    configuration: "1 year"
+    memories: "deleted"
+
+  outputs:
+    - final_balance_report
+    - performance_summary
+    - audit_trail_hash
+```
+
 ### Agent States
 
 ```mermaid
 stateDiagram-v2
     [*] --> Creating: User initiates
-    Creating --> Initializing: Keys generated
-    Initializing --> Active: Contract deployed
-    Active --> Paused: User/System pause
-    Paused --> Active: Resume
-    Active --> Executing: Strategy running
-    Executing --> Active: Execution complete
-    Active --> Terminating: User requests
-    Paused --> Terminating: Cleanup
+    Creating --> Funding: Config validated
+    Funding --> Activating: Wallet funded
+    Activating --> Active: Permissions set
+    Active --> Executing: Strategy triggered
+    Executing --> Monitoring: Execution complete
+    Monitoring --> Optimizing: Optimization triggered
+    Optimizing --> Active: Parameters updated
+    Active --> Suspended: Pause requested
+    Suspended --> Active: Resume
+    Active --> Migrating: Upgrade triggered
+    Migrating --> Active: Migration complete
+    Suspended --> Terminating: Termination requested
+    Active --> Terminating: Termination requested
     Terminating --> Terminated: Assets withdrawn
     Terminated --> [*]
 
     Active --> Emergency: Risk triggered
-    Emergency --> Paused: Stabilized
+    Emergency --> Suspended: Stabilized
     Emergency --> Terminating: Unrecoverable
 ```
 
@@ -2223,15 +2567,21 @@ stateDiagram-v2
 
 | From State | To State | Trigger | Actions |
 |------------|----------|---------|---------|
-| Creating | Initializing | Keys ready | Generate wallet, setup permissions |
-| Initializing | Active | Contract deployed | Notify user, enable operations |
-| Active | Paused | User/system request | Stop executions, hold assets |
-| Active | Executing | Strategy triggered | Lock state, begin execution |
-| Executing | Active | Execution complete | Update portfolio, log results |
-| Active | Emergency | Risk breach | Halt all operations, alert user |
-| Emergency | Paused | Admin review | Assess damage, plan recovery |
-| Active | Terminating | User request | Initiate asset withdrawal |
+| Creating | Funding | Config validated | Create wallet, generate keys |
+| Funding | Activating | Initial deposit received | Verify balance, setup permissions |
+| Activating | Active | Strategy assigned | Start monitoring, enable execution |
+| Active | Executing | Strategy trigger fired | Lock state, execute actions |
+| Executing | Monitoring | Execution complete | Update portfolio, record metrics |
+| Monitoring | Optimizing | Optimization scheduled | Analyze performance, tune params |
+| Optimizing | Active | Optimization complete | Apply updates, resume normal ops |
+| Active | Suspended | User/system pause | Hold positions, disable execution |
+| Suspended | Active | Resume request | Verify health, restart execution |
+| Active | Migrating | Upgrade triggered | Export state, upgrade, import |
+| Migrating | Active | Migration complete | Verify state, resume execution |
+| Active | Terminating | User request | Initiate withdrawal sequence |
 | Terminating | Terminated | Assets cleared | Archive state, cleanup resources |
+| Active | Emergency | Risk breach | Halt all operations, alert user |
+| Emergency | Suspended | Stabilized | Assess damage, plan recovery |
 
 ### Agent Configuration
 
@@ -2617,6 +2967,243 @@ class TwitterSentimentPlugin implements TONAIPlugin {
 | **Community Forum** | Developer discussions | Registration |
 | **Office Hours** | Weekly Q&A with team | Calendar |
 
+### Extended SDK Capabilities
+
+```typescript
+// Python SDK Example
+from tonaiagent import TONAIClient, Strategy, Agent
+
+client = TONAIClient(api_key=os.environ["TONAI_API_KEY"])
+
+# Create custom strategy with backtesting
+strategy = Strategy(
+    name="Grid Trading Bot",
+    dsl="""
+    parameters:
+      grid_levels: 10
+      grid_spacing: 0.02
+
+    triggers:
+      - type: price_level
+        levels: ${generate_grid_levels(params.grid_levels, params.grid_spacing)}
+
+    actions:
+      on_lower_level_hit:
+        - type: buy
+          amount: ${params.position_size / params.grid_levels}
+      on_upper_level_hit:
+        - type: sell
+          amount: ${params.position_size / params.grid_levels}
+    """
+)
+
+# Backtest the strategy
+backtest_result = await strategy.backtest(
+    start_date="2025-01-01",
+    end_date="2025-12-31",
+    initial_capital=10000,
+    parameters={"grid_levels": 10, "grid_spacing": 0.02}
+)
+
+print(f"Total Return: {backtest_result.total_return}%")
+print(f"Sharpe Ratio: {backtest_result.sharpe_ratio}")
+print(f"Max Drawdown: {backtest_result.max_drawdown}%")
+
+# Deploy to production
+agent = await client.agents.create(
+    strategy=strategy,
+    capital=1000,
+    permissions={"max_trade": 100}
+)
+```
+
+```go
+// Go SDK Example
+package main
+
+import (
+    "github.com/tonaiagent/sdk-go"
+    "context"
+)
+
+func main() {
+    client := tonaiagent.NewClient(os.Getenv("TONAI_API_KEY"))
+
+    // Subscribe to real-time events
+    events, err := client.Agents.Subscribe(context.Background(), agentID,
+        tonaiagent.EventTrade,
+        tonaiagent.EventRisk,
+        tonaiagent.EventPerformance,
+    )
+
+    for event := range events {
+        switch e := event.(type) {
+        case *tonaiagent.TradeEvent:
+            log.Printf("Trade: %s %f %s", e.Direction, e.Amount, e.Token)
+        case *tonaiagent.RiskEvent:
+            log.Printf("Risk Alert: %s", e.Message)
+        }
+    }
+}
+```
+
+### External Tools and Integrations
+
+```yaml
+external_integrations:
+  data_sources:
+    market_data:
+      - coingecko_api
+      - coinmarketcap_api
+      - tradingview_webhooks
+      - custom_price_feeds
+
+    social_signals:
+      - twitter_api
+      - telegram_groups
+      - discord_bots
+      - reddit_sentiment
+
+    on_chain:
+      - ton_indexer_api
+      - dex_analytics
+      - whale_tracking
+      - smart_money_flows
+
+  execution:
+    dex_aggregators:
+      - dedust_sdk
+      - stonfi_sdk
+      - custom_router
+
+    notification:
+      - telegram_bot_api
+      - webhook_endpoints
+      - email_smtp
+      - push_notifications
+
+  analytics:
+    reporting:
+      - custom_dashboards
+      - export_apis
+      - scheduled_reports
+
+    visualization:
+      - tradingview_integration
+      - grafana_datasource
+      - custom_charts
+
+  webhook_configuration:
+    inbound:
+      - tradingview_alerts
+      - external_signals
+      - price_alerts
+
+    outbound:
+      - trade_notifications
+      - portfolio_updates
+      - risk_alerts
+```
+
+### Developer Incentive Program
+
+```yaml
+developer_incentives:
+  bounty_program:
+    bug_bounties:
+      critical: "10000_usdt"
+      high: "5000_usdt"
+      medium: "1000_usdt"
+      low: "250_usdt"
+
+    feature_bounties:
+      description: "Community-requested features"
+      rewards: "negotiated"
+
+  hackathons:
+    frequency: "quarterly"
+    prizes:
+      first: "25000_usdt"
+      second: "15000_usdt"
+      third: "10000_usdt"
+      honorable_mentions: "5x_2000_usdt"
+
+    categories:
+      - best_strategy
+      - best_plugin
+      - best_integration
+      - most_innovative
+
+  creator_program:
+    tiers:
+      starter:
+        revenue_share: 70%
+        requirements: "verified_account"
+
+      pro:
+        revenue_share: 75%
+        requirements:
+          - "10_active_users"
+          - "3_months_track_record"
+        benefits:
+          - featured_placement
+          - priority_support
+
+      elite:
+        revenue_share: 80%
+        requirements:
+          - "100_active_users"
+          - "12_months_track_record"
+          - "positive_reputation"
+        benefits:
+          - homepage_feature
+          - co_marketing
+          - early_api_access
+
+  grants:
+    focus_areas:
+      - infrastructure_improvements
+      - novel_strategies
+      - community_tools
+      - educational_content
+
+    application_process:
+      - proposal_submission
+      - community_review
+      - team_evaluation
+      - milestone_based_funding
+```
+
+### Community and Ecosystem
+
+```mermaid
+flowchart TB
+    subgraph Community["Developer Community"]
+        FORUM[Community Forum]
+        DISCORD[Discord Server]
+        GITHUB[GitHub Discussions]
+        EVENTS[Meetups & Events]
+    end
+
+    subgraph Ecosystem["Ecosystem Partners"]
+        DEFI_PARTNERS[DeFi Protocols]
+        DATA_PARTNERS[Data Providers]
+        INFRA_PARTNERS[Infrastructure]
+        EDUCATION[Educational Partners]
+    end
+
+    subgraph Programs["Developer Programs"]
+        AMBASSADOR[Ambassador Program]
+        ACCELERATOR[Startup Accelerator]
+        CERTIFICATION[Developer Certification]
+        MENTORSHIP[Mentorship Program]
+    end
+
+    Community <--> Ecosystem
+    Ecosystem <--> Programs
+    Programs <--> Community
+```
+
 ---
 
 ## Admin and Control Layer
@@ -2679,6 +3266,1081 @@ flowchart TB
     SECURITY --> P1
     SECURITY --> P5
     SECURITY --> P7
+```
+
+---
+
+## Agent Economy
+
+The Agent Economy defines the economic model that enables sustainable platform growth, aligns incentives, and rewards value creation.
+
+### Economic Model Overview
+
+```mermaid
+flowchart TB
+    subgraph Revenue["Revenue Streams"]
+        PERF_FEES[Performance Fees]
+        SUB_FEES[Subscription Fees]
+        MARKET_FEES[Marketplace Fees]
+        TX_FEES[Transaction Fees]
+    end
+
+    subgraph Distribution["Value Distribution"]
+        PLATFORM_SHARE[Platform Treasury]
+        CREATOR_SHARE[Strategy Creators]
+        STAKER_SHARE[Token Stakers]
+        REF_SHARE[Referrers]
+    end
+
+    subgraph Incentives["Incentive Mechanisms"]
+        TOKEN_REWARDS[Token Rewards]
+        REPUTATION[Reputation System]
+        GOVERNANCE[Governance Rights]
+    end
+
+    Revenue --> Distribution
+    Distribution --> Incentives
+    Incentives -.->|Value Capture| Revenue
+```
+
+### Fee Structure
+
+```yaml
+fee_structure:
+  performance_fees:
+    description: "Percentage of profits generated by agents"
+    rate: "10-20%"
+    calculation: "high_water_mark"
+    frequency: "monthly_settlement"
+    distribution:
+      platform: 30%
+      strategy_creator: 50%
+      stakers: 15%
+      referrer: 5%
+
+  subscription_tiers:
+    free:
+      agents: 1
+      strategies: "basic_only"
+      execution_limit: "100_ton_daily"
+      fee: 0
+
+    pro:
+      agents: 5
+      strategies: "all"
+      execution_limit: "10000_ton_daily"
+      fee: "9.99_usdt_monthly"
+      discount_with_token: 20%
+
+    enterprise:
+      agents: "unlimited"
+      strategies: "all_plus_custom"
+      execution_limit: "unlimited"
+      fee: "custom"
+      features:
+        - dedicated_support
+        - custom_integrations
+        - sla_guarantee
+
+  marketplace_fees:
+    strategy_sales:
+      one_time: 15%
+      subscription: 20%
+
+    plugin_sales:
+      one_time: 15%
+      subscription: 20%
+
+  transaction_fees:
+    swap_execution: "0.1%"
+    cross_protocol: "0.15%"
+    minimum: "0.01_ton"
+    maximum: "10_ton"
+```
+
+### Revenue Sharing Model
+
+```mermaid
+flowchart LR
+    subgraph Input["Revenue Input"]
+        GROSS[Gross Revenue]
+    end
+
+    subgraph Split["Revenue Split"]
+        PLATFORM[Platform<br/>30%]
+        CREATORS[Creators<br/>50%]
+        STAKERS[Stakers<br/>15%]
+        REFERRERS[Referrers<br/>5%]
+    end
+
+    subgraph Usage["Fund Usage"]
+        TREASURY[Treasury]
+        CREATOR_WALLET[Creator Payouts]
+        STAKING_POOL[Staking Rewards]
+        REF_WALLET[Referral Payouts]
+    end
+
+    GROSS --> PLATFORM
+    GROSS --> CREATORS
+    GROSS --> STAKERS
+    GROSS --> REFERRERS
+
+    PLATFORM --> TREASURY
+    CREATORS --> CREATOR_WALLET
+    STAKERS --> STAKING_POOL
+    REFERRERS --> REF_WALLET
+```
+
+### Token Incentives
+
+```yaml
+token_economics:
+  token_name: "TONAI"
+  total_supply: 1_000_000_000
+
+  allocation:
+    community_rewards: 40%
+    team_and_advisors: 15%
+    treasury: 20%
+    liquidity: 10%
+    investors: 15%
+
+  utility:
+    governance:
+      - protocol_parameter_voting
+      - treasury_allocation
+      - feature_prioritization
+      - marketplace_curation
+
+    staking:
+      rewards_source: "transaction_fees"
+      minimum_stake: 1000
+      lock_periods:
+        - period: "30_days"
+          multiplier: 1.0
+        - period: "90_days"
+          multiplier: 1.5
+        - period: "365_days"
+          multiplier: 2.5
+
+    fee_discounts:
+      subscription:
+        stake_1k: 10%
+        stake_10k: 20%
+        stake_100k: 30%
+
+      performance_fees:
+        stake_10k: 5%
+        stake_100k: 10%
+
+    access_rights:
+      premium_strategies: "stake_5000+"
+      early_access: "stake_10000+"
+      beta_features: "stake_25000+"
+```
+
+### Agent Reputation System
+
+```mermaid
+flowchart TB
+    subgraph Inputs["Reputation Inputs"]
+        PERF[Performance History]
+        CONS[Consistency Score]
+        RISK_MGMT[Risk Management]
+        UPTIME[Uptime/Reliability]
+        USER_RATINGS[User Ratings]
+    end
+
+    subgraph Calculation["Reputation Calculation"]
+        WEIGHTS[Weighted Scoring]
+        NORMALIZATION[Normalization]
+        DECAY[Time Decay]
+    end
+
+    subgraph Output["Reputation Score"]
+        SCORE[0-1000 Score]
+        TIER[Reputation Tier]
+    end
+
+    subgraph Benefits["Tier Benefits"]
+        VISIBILITY[Marketplace Visibility]
+        FEES[Reduced Platform Fees]
+        TRUST[Trust Badge]
+        LIMITS[Higher Limits]
+    end
+
+    Inputs --> Calculation
+    Calculation --> Output
+    Output --> Benefits
+```
+
+#### Reputation Score Components
+
+| Component | Weight | Description |
+|-----------|--------|-------------|
+| **Performance** | 35% | Risk-adjusted returns (Sharpe, Sortino) |
+| **Consistency** | 20% | Stable performance across market conditions |
+| **Risk Management** | 20% | Drawdown control, stop-loss effectiveness |
+| **Reliability** | 15% | Uptime, execution success rate |
+| **User Ratings** | 10% | Community feedback and ratings |
+
+#### Reputation Tiers
+
+| Tier | Score Range | Benefits |
+|------|-------------|----------|
+| **Bronze** | 0-200 | Basic marketplace listing |
+| **Silver** | 201-400 | Featured in category, 5% fee reduction |
+| **Gold** | 401-600 | Homepage feature rotation, 10% fee reduction |
+| **Platinum** | 601-800 | Priority support, 15% fee reduction, trust badge |
+| **Diamond** | 801-1000 | Top placement, 20% fee reduction, verified badge |
+
+### Strategy and Agent Marketplace
+
+```yaml
+marketplace:
+  listing_types:
+    strategies:
+      template:
+        description: "Pre-built strategy configs"
+        pricing: "free | one_time | subscription"
+        revenue_share: "creator_70_platform_30"
+
+      custom:
+        description: "Fully custom strategy code"
+        pricing: "one_time | subscription | performance_based"
+        revenue_share: "creator_70_platform_30"
+
+    agents:
+      pre_configured:
+        description: "Ready-to-deploy agents"
+        pricing: "one_time | subscription"
+        includes:
+          - strategy
+          - default_params
+          - risk_config
+
+    plugins:
+      data_plugins:
+        description: "External data sources"
+        pricing: "free | subscription"
+
+      signal_plugins:
+        description: "Trading signals"
+        pricing: "subscription | performance_based"
+
+  discovery:
+    featured:
+      - top_performers
+      - trending
+      - staff_picks
+      - new_arrivals
+
+    search:
+      filters:
+        - risk_level
+        - asset_class
+        - strategy_type
+        - price_range
+        - rating
+
+    social:
+      - copy_trading
+      - follower_stats
+      - creator_profiles
+
+  quality_assurance:
+    automated:
+      - code_review
+      - security_scan
+      - backtest_validation
+      - plagiarism_check
+
+    manual:
+      - featured_review
+      - compliance_check
+```
+
+---
+
+## Multi-Agent Architecture
+
+The Multi-Agent Architecture enables collaborative and hierarchical agent systems for sophisticated portfolio management.
+
+### Multi-Agent Overview
+
+```mermaid
+flowchart TB
+    subgraph Coordination["Agent Coordination"]
+        MASTER[Master Agent]
+        WORKER1[Worker Agent 1<br/>DCA Strategy]
+        WORKER2[Worker Agent 2<br/>Yield Farming]
+        WORKER3[Worker Agent 3<br/>Risk Hedging]
+    end
+
+    subgraph Communication["Communication Layer"]
+        MSG_BUS[Message Bus]
+        STATE_SYNC[State Synchronization]
+        CONFLICT[Conflict Resolution]
+    end
+
+    subgraph Resources["Shared Resources"]
+        SHARED_WALLET[Shared Wallet]
+        SHARED_DATA[Shared Memory]
+        SHARED_LIMITS[Global Limits]
+    end
+
+    MASTER --> WORKER1
+    MASTER --> WORKER2
+    MASTER --> WORKER3
+
+    WORKER1 <--> MSG_BUS
+    WORKER2 <--> MSG_BUS
+    WORKER3 <--> MSG_BUS
+
+    MSG_BUS <--> STATE_SYNC
+    STATE_SYNC --> CONFLICT
+
+    WORKER1 --> SHARED_WALLET
+    WORKER2 --> SHARED_WALLET
+    WORKER3 --> SHARED_WALLET
+
+    CONFLICT --> Resources
+```
+
+### Agent Coordination Patterns
+
+#### 1. Hierarchical Delegation
+
+```mermaid
+flowchart TB
+    subgraph Portfolio["Portfolio Agent (Master)"]
+        PORTFOLIO_LOGIC[Portfolio Logic]
+        ALLOCATION[Capital Allocation]
+        OVERSIGHT[Performance Oversight]
+    end
+
+    subgraph Workers["Specialized Worker Agents"]
+        subgraph DeFi["DeFi Agent"]
+            YIELD[Yield Optimization]
+            LP[LP Management]
+        end
+
+        subgraph Trading["Trading Agent"]
+            SPOT[Spot Trading]
+            MOMENTUM[Momentum Strategies]
+        end
+
+        subgraph Risk["Risk Agent"]
+            HEDGE[Hedging]
+            STOP[Stop-Loss Execution]
+        end
+    end
+
+    PORTFOLIO_LOGIC --> ALLOCATION
+    ALLOCATION --> DeFi
+    ALLOCATION --> Trading
+    ALLOCATION --> Risk
+
+    DeFi --> OVERSIGHT
+    Trading --> OVERSIGHT
+    Risk --> OVERSIGHT
+```
+
+#### 2. Collaborative Swarms
+
+```yaml
+swarm_configuration:
+  name: "Arbitrage Swarm"
+  description: "Collaborative arbitrage across DEXs"
+
+  agents:
+    scout_agents:
+      count: 5
+      role: "opportunity_detection"
+      capabilities:
+        - monitor_price_feeds
+        - detect_arbitrage_opportunities
+        - estimate_profitability
+
+    executor_agents:
+      count: 2
+      role: "trade_execution"
+      capabilities:
+        - execute_swaps
+        - manage_gas
+        - handle_failures
+
+    coordinator_agent:
+      count: 1
+      role: "coordination"
+      capabilities:
+        - prioritize_opportunities
+        - allocate_capital
+        - prevent_conflicts
+        - track_performance
+
+  communication:
+    protocol: "event_driven"
+    latency_target: "<100ms"
+
+  resource_sharing:
+    capital_pool: "shared"
+    risk_limits: "global"
+    profit_distribution: "proportional"
+```
+
+#### 3. Competitive Agents
+
+```yaml
+competitive_configuration:
+  name: "Strategy Tournament"
+  description: "Multiple agents compete for capital allocation"
+
+  agents:
+    - id: "momentum_agent"
+      strategy: "momentum_trading"
+      initial_allocation: 25%
+
+    - id: "mean_reversion_agent"
+      strategy: "mean_reversion"
+      initial_allocation: 25%
+
+    - id: "ml_signal_agent"
+      strategy: "ml_signals"
+      initial_allocation: 25%
+
+    - id: "sentiment_agent"
+      strategy: "sentiment_trading"
+      initial_allocation: 25%
+
+  evaluation:
+    frequency: "weekly"
+    metrics:
+      - risk_adjusted_returns
+      - drawdown
+      - win_rate
+
+  reallocation:
+    method: "performance_weighted"
+    minimum_allocation: 10%
+    maximum_allocation: 40%
+    rebalance_frequency: "weekly"
+```
+
+### Agent Communication Protocol
+
+```mermaid
+sequenceDiagram
+    participant M as Master Agent
+    participant W1 as Worker Agent 1
+    participant W2 as Worker Agent 2
+    participant BUS as Message Bus
+    participant STATE as State Store
+
+    M->>BUS: publish(task_assignment)
+    BUS->>W1: subscribe(task_type)
+    BUS->>W2: subscribe(task_type)
+
+    W1->>STATE: lock(resource)
+    W1->>W1: execute_task()
+    W1->>STATE: update(position)
+    W1->>STATE: unlock(resource)
+    W1->>BUS: publish(task_complete)
+
+    BUS->>M: notify(task_complete)
+    M->>STATE: verify(state_consistency)
+```
+
+### Conflict Resolution
+
+```yaml
+conflict_resolution:
+  resource_conflicts:
+    capital_allocation:
+      strategy: "priority_based"
+      priority_factors:
+        - urgency
+        - expected_return
+        - risk_level
+
+    position_conflicts:
+      strategy: "master_override"
+      escalation: "user_notification"
+
+  execution_conflicts:
+    simultaneous_trades:
+      strategy: "sequential_queue"
+      priority: "first_in_first_out"
+
+    contradictory_signals:
+      strategy: "consensus_required"
+      minimum_agreement: 60%
+
+  state_conflicts:
+    inconsistent_state:
+      strategy: "master_reconciliation"
+      fallback: "snapshot_rollback"
+```
+
+---
+
+## Cross-Chain Roadmap
+
+While TONAIAgent is TON-first, the architecture is designed for future cross-chain expansion to maximize user reach and DeFi opportunities.
+
+### Cross-Chain Vision
+
+```mermaid
+flowchart TB
+    subgraph Phase1["Phase 1: TON Native<br/>(Current)"]
+        TON_DEX[TON DEXs]
+        TON_DEFI[TON DeFi]
+        TON_NFT[TON NFTs]
+    end
+
+    subgraph Phase2["Phase 2: Bridge Integration<br/>(6-12 months)"]
+        BRIDGE[Cross-Chain Bridges]
+        WRAP[Wrapped Assets]
+        MULTICHAIN_WALLET[Multi-Chain Wallet]
+    end
+
+    subgraph Phase3["Phase 3: Native Multi-Chain<br/>(12-24 months)"]
+        ETH[Ethereum]
+        SOL[Solana]
+        ARB[Arbitrum]
+        BASE[Base]
+    end
+
+    subgraph Phase4["Phase 4: Chain Abstraction<br/>(24+ months)"]
+        UNIFIED[Unified Interface]
+        AUTO_ROUTE[Auto-Routing]
+        CHAIN_AGNOSTIC[Chain Agnostic]
+    end
+
+    Phase1 --> Phase2
+    Phase2 --> Phase3
+    Phase3 --> Phase4
+```
+
+### Phase 2: Bridge Integration
+
+```yaml
+bridge_integration:
+  supported_bridges:
+    ton_bridge:
+      chains: ["ethereum", "bsc"]
+      assets: ["USDT", "USDC", "ETH"]
+      status: "priority"
+
+    orbit_bridge:
+      chains: ["ethereum", "polygon", "bsc"]
+      assets: ["major_tokens"]
+      status: "planned"
+
+  capabilities:
+    asset_bridging:
+      - automated_bridging
+      - fee_optimization
+      - slippage_protection
+
+    cross_chain_swaps:
+      - quote_aggregation
+      - best_route_selection
+      - transaction_batching
+
+  risk_controls:
+    bridge_limits:
+      single_tx_max: 10000  # USD
+      daily_max: 100000     # USD
+
+    verification:
+      confirmations_required: true
+      receipt_validation: true
+```
+
+### Phase 3: Native Multi-Chain
+
+```yaml
+multi_chain_support:
+  ethereum:
+    priority: "high"
+    timeline: "q3_2026"
+    defi_integrations:
+      - uniswap
+      - aave
+      - compound
+      - curve
+
+    wallet_support:
+      - metamask
+      - walletconnect
+      - smart_contract_wallets
+
+  solana:
+    priority: "high"
+    timeline: "q4_2026"
+    defi_integrations:
+      - raydium
+      - orca
+      - marinade
+      - solend
+
+    wallet_support:
+      - phantom
+      - solflare
+
+  layer2s:
+    arbitrum:
+      priority: "medium"
+      timeline: "q1_2027"
+
+    base:
+      priority: "medium"
+      timeline: "q1_2027"
+
+    optimism:
+      priority: "low"
+      timeline: "q2_2027"
+```
+
+### Cross-Chain Architecture
+
+```mermaid
+flowchart TB
+    subgraph UnifiedLayer["Unified Interface Layer"]
+        UNIFIED_API[Unified API]
+        CHAIN_ROUTER[Chain Router]
+        ASSET_MANAGER[Asset Manager]
+    end
+
+    subgraph Adapters["Chain Adapters"]
+        TON_ADAPTER[TON Adapter]
+        ETH_ADAPTER[Ethereum Adapter]
+        SOL_ADAPTER[Solana Adapter]
+    end
+
+    subgraph ChainSpecific["Chain-Specific Services"]
+        subgraph TON_SVC["TON Services"]
+            TON_WALLET[TON Wallet]
+            TON_TX[TON Transactions]
+        end
+
+        subgraph ETH_SVC["Ethereum Services"]
+            ETH_WALLET[ETH Wallet]
+            ETH_TX[ETH Transactions]
+        end
+
+        subgraph SOL_SVC["Solana Services"]
+            SOL_WALLET[SOL Wallet]
+            SOL_TX[SOL Transactions]
+        end
+    end
+
+    subgraph Messaging["Cross-Chain Messaging"]
+        LAYERZERO[LayerZero]
+        WORMHOLE[Wormhole]
+        AXELAR[Axelar]
+    end
+
+    UNIFIED_API --> CHAIN_ROUTER
+    CHAIN_ROUTER --> Adapters
+    Adapters --> ChainSpecific
+    ChainSpecific <--> Messaging
+```
+
+### Cross-Chain Messaging
+
+```yaml
+messaging_integration:
+  layerzero:
+    use_cases:
+      - cross_chain_position_sync
+      - unified_governance
+      - portfolio_rebalancing
+
+    configuration:
+      oracle: "layerzero_default"
+      relayer: "platform_operated"
+
+  wormhole:
+    use_cases:
+      - asset_bridging
+      - cross_chain_swaps
+
+    configuration:
+      guardians: "wormhole_network"
+      finality: "instant"
+
+  custom_messaging:
+    use_cases:
+      - agent_state_sync
+      - cross_chain_commands
+
+    configuration:
+      consensus: "platform_validators"
+      latency_target: "<30s"
+```
+
+---
+
+## AI Safety and Governance
+
+AI Safety and Governance ensures responsible AI behavior, decision transparency, and regulatory compliance.
+
+### AI Governance Framework
+
+```mermaid
+flowchart TB
+    subgraph Principles["Core Principles"]
+        TRANSPARENCY[Transparency]
+        ACCOUNTABILITY[Accountability]
+        FAIRNESS[Fairness]
+        SAFETY[Safety]
+    end
+
+    subgraph Implementation["Implementation"]
+        EXPLAINABILITY[Explainability Engine]
+        AUDIT_TRAIL[Audit Trail]
+        DECISION_LOG[Decision Logging]
+        BIAS_DETECT[Bias Detection]
+    end
+
+    subgraph Oversight["Oversight Mechanisms"]
+        HUMAN_LOOP[Human-in-the-Loop]
+        REVIEW_BOARD[AI Review Board]
+        EXTERNAL_AUDIT[External Audits]
+    end
+
+    Principles --> Implementation
+    Implementation --> Oversight
+    Oversight -.->|Feedback| Principles
+```
+
+### Explainability Engine
+
+The Explainability Engine provides clear reasoning for all AI decisions.
+
+```mermaid
+flowchart LR
+    subgraph Input["AI Decision"]
+        DECISION[Trading Decision]
+        CONTEXT[Decision Context]
+    end
+
+    subgraph Analysis["Explanation Analysis"]
+        FACTOR_EXTRACT[Factor Extraction]
+        WEIGHT_ANALYSIS[Weight Analysis]
+        COUNTER_FACT[Counterfactual Analysis]
+    end
+
+    subgraph Output["Explanation Output"]
+        NATURAL_LANG[Natural Language]
+        VISUAL[Visual Breakdown]
+        METRICS[Confidence Metrics]
+    end
+
+    Input --> Analysis
+    Analysis --> Output
+```
+
+#### Explanation Configuration
+
+```yaml
+explainability:
+  decision_factors:
+    market_factors:
+      - price_momentum
+      - volume_trend
+      - volatility_level
+      - liquidity_depth
+
+    strategy_factors:
+      - strategy_rules_triggered
+      - risk_thresholds
+      - position_sizing_logic
+
+    ai_factors:
+      - model_confidence
+      - feature_importance
+      - similar_past_decisions
+
+  explanation_levels:
+    simple:
+      target_audience: "retail_users"
+      format: "natural_language"
+      example: "I bought TON because the price momentum is strong (+15% in 24h) and it's within your risk limits."
+
+    detailed:
+      target_audience: "advanced_users"
+      format: "structured_report"
+      includes:
+        - factor_weights
+        - confidence_intervals
+        - alternative_actions_considered
+
+    technical:
+      target_audience: "auditors_developers"
+      format: "full_technical_report"
+      includes:
+        - model_inputs
+        - intermediate_computations
+        - decision_tree_path
+        - counterfactual_analysis
+
+  real_time_explanations:
+    enabled: true
+    latency_target: "<500ms"
+    caching: true
+```
+
+### Comprehensive Audit Trail
+
+```yaml
+audit_trail:
+  decision_logging:
+    fields:
+      - timestamp
+      - agent_id
+      - decision_type
+      - input_data_hash
+      - model_version
+      - decision_output
+      - confidence_score
+      - explanation_summary
+      - execution_result
+
+    retention:
+      raw_data: "7_years"
+      aggregated: "permanent"
+
+    immutability:
+      storage: "append_only"
+      verification: "merkle_tree"
+      blockchain_anchor: "daily"
+
+  audit_capabilities:
+    query_interface:
+      - time_range_search
+      - agent_filter
+      - decision_type_filter
+      - outcome_filter
+
+    export_formats:
+      - json
+      - csv
+      - compliance_report
+
+    access_control:
+      user: "own_agent_decisions"
+      auditor: "all_with_pii_masked"
+      regulator: "full_access_with_warrant"
+```
+
+### Decision Transparency
+
+```mermaid
+flowchart TB
+    subgraph PreDecision["Pre-Decision Transparency"]
+        INTENT[Show Intent]
+        ANALYSIS[Show Analysis]
+        OPTIONS[Show Options Considered]
+    end
+
+    subgraph DecisionPoint["Decision Point"]
+        CHOICE[Selected Action]
+        REASONING[Reasoning Summary]
+        CONFIDENCE[Confidence Level]
+    end
+
+    subgraph PostDecision["Post-Decision Transparency"]
+        RESULT[Actual Outcome]
+        COMPARISON[Expected vs Actual]
+        LEARNING[Lessons Learned]
+    end
+
+    PreDecision --> DecisionPoint
+    DecisionPoint --> PostDecision
+    PostDecision -.->|Feedback Loop| PreDecision
+```
+
+#### User-Facing Transparency
+
+```yaml
+user_transparency:
+  before_execution:
+    show_user:
+      - proposed_action
+      - expected_outcome
+      - risk_assessment
+      - alternative_actions
+      - reasoning_summary
+
+    approval_modes:
+      auto_execute:
+        description: "Execute without confirmation"
+        limits: "within_pre_approved_bounds"
+
+      notify_execute:
+        description: "Execute and notify"
+        limits: "within_medium_bounds"
+
+      confirm_execute:
+        description: "Wait for user confirmation"
+        limits: "above_thresholds_or_new_patterns"
+
+  during_execution:
+    real_time_updates:
+      - execution_status
+      - partial_fills
+      - slippage_encountered
+
+  after_execution:
+    provide_user:
+      - execution_report
+      - performance_impact
+      - explanation_if_different
+      - learning_updates
+```
+
+### Bias Detection and Mitigation
+
+```yaml
+bias_detection:
+  monitoring:
+    demographic_bias:
+      tracked: false  # No demographic data collected
+      reason: "privacy_by_design"
+
+    outcome_bias:
+      tracked: true
+      metrics:
+        - win_rate_by_token
+        - win_rate_by_market_condition
+        - win_rate_by_strategy_type
+
+    model_bias:
+      tracked: true
+      checks:
+        - feature_drift_detection
+        - prediction_calibration
+        - confidence_calibration
+
+  detection_methods:
+    statistical:
+      - chi_square_test
+      - kolmogorov_smirnov
+      - disparate_impact_ratio
+
+    ml_based:
+      - adversarial_debiasing
+      - fairness_constraints
+
+  mitigation:
+    retraining:
+      trigger: "bias_detected"
+      method: "balanced_dataset"
+
+    real_time:
+      adjustment: "confidence_scaling"
+      human_review: "flagged_decisions"
+```
+
+### AI Governance Board
+
+```yaml
+ai_governance:
+  internal_review:
+    frequency: "quarterly"
+    scope:
+      - model_performance
+      - bias_reports
+      - incident_review
+      - policy_updates
+
+    participants:
+      - ai_team_lead
+      - risk_officer
+      - compliance_officer
+      - external_advisor
+
+  external_audit:
+    frequency: "annual"
+    scope:
+      - model_validation
+      - fairness_audit
+      - security_review
+      - compliance_verification
+
+    auditor_requirements:
+      - independent_third_party
+      - ai_ethics_expertise
+      - financial_services_experience
+
+  incident_response:
+    severity_levels:
+      low:
+        response_time: "24h"
+        escalation: "team_lead"
+
+      medium:
+        response_time: "4h"
+        escalation: "governance_board"
+
+      high:
+        response_time: "1h"
+        escalation: "executive_team"
+        actions:
+          - immediate_pause
+          - user_notification
+          - root_cause_analysis
+
+  policy_updates:
+    proposal_process: "governance_board_approval"
+    implementation: "staged_rollout"
+    user_notification: "advance_notice"
+```
+
+### Regulatory Compliance
+
+```yaml
+regulatory_compliance:
+  frameworks:
+    eu_ai_act:
+      risk_classification: "high_risk"
+      requirements:
+        - transparency_obligations
+        - human_oversight
+        - accuracy_requirements
+        - robustness_testing
+
+    financial_regulations:
+      applicable:
+        - mifid_ii  # EU
+        - cftc_rules  # US
+        - fca_rules  # UK
+
+      requirements:
+        - best_execution
+        - conflict_of_interest
+        - record_keeping
+        - client_communication
+
+  compliance_features:
+    automated_reporting:
+      - daily_trade_reports
+      - monthly_performance
+      - annual_compliance_summary
+
+    audit_support:
+      - data_export
+      - decision_replay
+      - explanation_generation
+
+    user_rights:
+      - explanation_request
+      - data_access
+      - data_deletion
+      - human_review_request
 ```
 
 ---
@@ -2789,6 +4451,7 @@ flowchart TB
 
 ---
 
-*Document Version: 2.0*
+*Document Version: 3.0*
 *Last Updated: 2026-02-19*
 *Author: AI Architecture Assistant*
+*Revision Notes: Added Agent Lifecycle (9 stages), Agent Economy, Multi-Agent Architecture, Cross-Chain Roadmap, AI Safety and Governance, and expanded Developer Platform*

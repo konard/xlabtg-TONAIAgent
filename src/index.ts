@@ -4,8 +4,8 @@
  * Multi-provider AI layer with production-grade security, plugin system, strategy engine,
  * no-code strategy builder, marketplace, copy trading, institutional compliance,
  * omnichain infrastructure, agent launchpad, autonomous hedge fund infrastructure,
- * AI safety/alignment framework, ecosystem fund, and TON Super App (wallet, AI agents,
- * social layer, Telegram Mini App) for autonomous finance on TON blockchain.
+ * viral consumer growth engine, AI safety/alignment framework, ecosystem fund, and TON Super App
+ * (wallet, AI agents, social layer, Telegram Mini App) for autonomous finance on TON blockchain.
  *
  * Features:
  * - Multi-provider AI support (Groq, Anthropic, OpenAI, Google, xAI, OpenRouter)
@@ -38,6 +38,9 @@
  * - AI-driven investment framework (signals, predictions, RL)
  * - Institutional portfolio engine (diversification, rebalancing)
  * - Continuous learning system (backtesting, live adaptation)
+ * - Viral consumer growth engine (referrals, social trading, gamification)
+ * - Growth analytics and A/B testing
+ * - Anti-abuse and sybil detection
  * - AI Safety, Alignment & Governance Framework
  * - Ecosystem fund (treasury, grants, investments, incubation, incentives)
  * - Super App: Smart Wallet with MPC recovery
@@ -120,6 +123,34 @@ export * as HedgeFund from './hedgefund';
 
 // Note: Import hedgefund module separately from '@tonaiagent/core/hedgefund'
 // for direct access to hedge fund types and managers
+
+// Growth Engine exports (referral, social trading, gamification, viral loops, analytics, anti-abuse)
+export {
+  // Main engine
+  createGrowthEngine,
+  DefaultGrowthEngine,
+  // Referral system
+  createReferralSystem,
+  DefaultReferralSystem,
+  // Social trading
+  createSocialTradingEngine,
+  DefaultSocialTradingEngine,
+  // Gamification
+  createGamificationEngine,
+  DefaultGamificationEngine,
+  // Viral loops
+  createViralLoopsEngine,
+  DefaultViralLoopsEngine,
+  // Growth analytics
+  createGrowthAnalyticsEngine,
+  DefaultGrowthAnalyticsEngine,
+  // Anti-abuse
+  createAntiAbuseSystem,
+  DefaultAntiAbuseSystem,
+} from './growth';
+
+// Re-export growth types with namespace to avoid conflicts
+export type * as GrowthTypes from './growth/types';
 
 // Note: Import ecosystem fund module separately from '@tonaiagent/core/ecosystem-fund'
 // to avoid naming conflicts with existing exports (governance, treasury, etc.)

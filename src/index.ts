@@ -28,6 +28,9 @@
  * - Institutional compliance (KYC/AML, regulatory reporting)
  * - Portfolio risk management (VaR, stress testing)
  * - AI governance and explainability
+ * - AI-native personal finance (savings automation, wealth management)
+ * - Life-stage personalization and behavioral finance
+ * - Financial education with gamification
  */
 
 export * from './ai';
@@ -77,3 +80,6 @@ export type * as MarketplaceTypes from './marketplace/types';
 
 // Note: Import institutional module separately from '@tonaiagent/core/institutional'
 // to avoid naming conflicts with existing exports
+
+// Note: Import personal-finance module separately from '@tonaiagent/core/personal-finance'
+// for AI-native personal finance features (savings, investments, education, dashboard)

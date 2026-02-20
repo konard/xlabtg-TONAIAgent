@@ -5,7 +5,7 @@
  * no-code strategy builder, marketplace, copy trading, institutional compliance,
  * omnichain infrastructure, agent launchpad, autonomous hedge fund infrastructure,
  * viral consumer growth engine, TON Super App (wallet, AI agents, social layer, Telegram Mini App),
- * and Telegram-native mobile-first UX for autonomous finance on TON blockchain.
+ * Telegram-native mobile-first UX, and AI-native personal finance for autonomous finance on TON blockchain.
  *
  * Features:
  * - Multi-provider AI support (Groq, Anthropic, OpenAI, Google, xAI, OpenRouter)
@@ -53,6 +53,9 @@
  * - Super App: Embedded AI Assistant powered by Groq
  * - Super App: Premium subscriptions and monetization
  * - Telegram-native mobile-first UX with conversational AI
+ * - AI-native personal finance (savings automation, wealth management)
+ * - Life-stage personalization and behavioral finance
+ * - Financial education with gamification
  */
 
 export * from './ai';
@@ -162,3 +165,6 @@ export type * as GrowthTypes from './growth/types';
 
 // Note: Import mobile-ux module separately from '@tonaiagent/core/mobile-ux'
 // for Telegram-native mobile-first UX features
+
+// Note: Import personal-finance module separately from '@tonaiagent/core/personal-finance'
+// for AI-native personal finance features (savings, investments, education, dashboard)

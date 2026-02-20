@@ -15,6 +15,9 @@
  * - TON-native tools (wallet, jettons, NFT)
  * - AI function calling integration
  * - Autonomous Strategy Engine for DeFi automation
+ * - No-code visual strategy builder
+ * - AI-assisted strategy creation
+ * - Historical backtesting and simulation
  * - Tokenomics and agent economy (staking, governance, rewards, reputation)
  */
 
@@ -28,3 +31,5 @@ export * as Plugins from './plugins';
 // Re-export strategy with namespace to avoid naming conflicts with tokenomics types
 // (Both modules have ActionResult and StrategyPerformance types)
 export * as Strategy from './strategy';
+
+// No-code module is available as separate import: '@tonaiagent/core/no-code'

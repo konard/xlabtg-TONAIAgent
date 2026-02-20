@@ -1,7 +1,7 @@
 {
   "name": "@tonaiagent/core",
-  "version": "0.7.0",
-  "description": "Multi-provider AI layer with production-grade security, multi-agent coordination, strategy engine, plugin system, no-code visual builder, marketplace, and copy trading for autonomous agents on TON blockchain",
+  "version": "0.8.0",
+  "description": "Multi-provider AI layer with production-grade security, multi-agent coordination, strategy engine, plugin system, no-code visual builder, marketplace, copy trading, and tokenomics for autonomous agents on TON blockchain",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
@@ -45,6 +45,11 @@
       "types": "./dist/marketplace/index.d.ts",
       "import": "./dist/marketplace/index.mjs",
       "require": "./dist/marketplace/index.js"
+    },
+    "./tokenomics": {
+      "types": "./dist/tokenomics/index.d.ts",
+      "import": "./dist/tokenomics/index.mjs",
+      "require": "./dist/tokenomics/index.js"
     }
   },
   "files": [
@@ -52,8 +57,8 @@
     "src"
   ],
   "scripts": {
-    "build": "tsup src/index.ts src/ai/index.ts src/security/index.ts src/plugins/index.ts src/multi-agent/index.ts src/strategy/index.ts src/no-code/index.ts src/marketplace/index.ts --format cjs,esm --dts --clean",
-    "dev": "tsup src/index.ts src/ai/index.ts src/security/index.ts src/plugins/index.ts src/multi-agent/index.ts src/strategy/index.ts src/no-code/index.ts src/marketplace/index.ts --format cjs,esm --dts --watch",
+    "build": "tsup src/index.ts src/ai/index.ts src/security/index.ts src/plugins/index.ts src/multi-agent/index.ts src/strategy/index.ts src/no-code/index.ts src/marketplace/index.ts src/tokenomics/index.ts --format cjs,esm --dts --clean",
+    "dev": "tsup src/index.ts src/ai/index.ts src/security/index.ts src/plugins/index.ts src/multi-agent/index.ts src/strategy/index.ts src/no-code/index.ts src/marketplace/index.ts src/tokenomics/index.ts --format cjs,esm --dts --watch",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
@@ -105,7 +110,12 @@
     "copy-trading",
     "reputation",
     "analytics",
-    "monetization"
+    "monetization",
+    "tokenomics",
+    "staking",
+    "governance",
+    "dao",
+    "rewards"
   ],
   "author": "TONAIAgent Team",
   "license": "MIT",

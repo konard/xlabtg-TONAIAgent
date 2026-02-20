@@ -4,7 +4,7 @@
  * Multi-provider AI layer with production-grade security, plugin system, strategy engine,
  * no-code strategy builder, marketplace, copy trading, institutional compliance,
  * omnichain infrastructure, agent launchpad, autonomous hedge fund infrastructure,
- * and TON Super App (wallet, AI agents, social layer, Telegram Mini App)
+ * viral consumer growth engine, and TON Super App (wallet, AI agents, social layer, Telegram Mini App)
  * for autonomous finance on TON blockchain.
  *
  * Features:
@@ -39,6 +39,9 @@
  * - Institutional portfolio engine (diversification, rebalancing)
  * - Continuous learning system (backtesting, live adaptation)
  * - Global data and signal platform for AI agents
+ * - Viral consumer growth engine (referrals, social trading, gamification)
+ * - Growth analytics and A/B testing
+ * - Anti-abuse and sybil detection
  * - AI Safety, Alignment & Governance Framework
  * - Super App: Smart Wallet with MPC recovery
  * - Super App: Agent Dashboard for monitoring and automation
@@ -124,6 +127,34 @@ export * as HedgeFund from './hedgefund';
 // Re-export data-platform with namespace to avoid naming conflicts
 // (data-platform defines MarketDataService which could conflict with other modules)
 export * as DataPlatform from './data-platform';
+
+// Growth Engine exports (referral, social trading, gamification, viral loops, analytics, anti-abuse)
+export {
+  // Main engine
+  createGrowthEngine,
+  DefaultGrowthEngine,
+  // Referral system
+  createReferralSystem,
+  DefaultReferralSystem,
+  // Social trading
+  createSocialTradingEngine,
+  DefaultSocialTradingEngine,
+  // Gamification
+  createGamificationEngine,
+  DefaultGamificationEngine,
+  // Viral loops
+  createViralLoopsEngine,
+  DefaultViralLoopsEngine,
+  // Growth analytics
+  createGrowthAnalyticsEngine,
+  DefaultGrowthAnalyticsEngine,
+  // Anti-abuse
+  createAntiAbuseSystem,
+  DefaultAntiAbuseSystem,
+} from './growth';
+
+// Re-export growth types with namespace to avoid conflicts
+export type * as GrowthTypes from './growth/types';
 
 // Note: Import superapp module separately from '@tonaiagent/core/superapp'
 // to access the full Super App functionality (wallet, agents, social, financial, etc.)

@@ -3,8 +3,8 @@
  *
  * Multi-provider AI layer with production-grade security, plugin system, strategy engine,
  * no-code strategy builder, marketplace, copy trading, institutional compliance,
- * omnichain infrastructure, agent launchpad, and Telegram-native mobile-first UX
- * for autonomous agents on TON blockchain.
+ * omnichain infrastructure, agent launchpad, autonomous hedge fund infrastructure,
+ * and Telegram-native mobile-first UX for autonomous agents on TON blockchain.
  *
  * Features:
  * - Multi-provider AI support (Groq, Anthropic, OpenAI, Google, xAI, OpenRouter)
@@ -33,6 +33,10 @@
  * - ChangeNOW integration (200+ chains, 1200+ assets)
  * - Cross-chain portfolio management and risk assessment
  * - Agent Launchpad for DAOs, funds, and autonomous treasuries
+ * - Autonomous Hedge Fund Architecture (portfolio, execution, risk agents)
+ * - AI-driven investment framework (signals, predictions, RL)
+ * - Institutional portfolio engine (diversification, rebalancing)
+ * - Continuous learning system (backtesting, live adaptation)
  * - Telegram-native mobile-first UX with conversational AI
  */
 
@@ -94,6 +98,13 @@ export * as Omnichain from './omnichain';
 // Re-export launchpad with namespace to avoid naming conflicts
 // (launchpad has its own GovernanceConfig, CapitalPool, and similar types)
 export * as Launchpad from './launchpad';
+
+// Re-export hedgefund with namespace to avoid naming conflicts
+// (hedgefund module defines StrategyAllocation, PortfolioPerformance, etc.)
+export * as HedgeFund from './hedgefund';
+
+// Note: Import hedgefund module separately from '@tonaiagent/core/hedgefund'
+// for direct access to hedge fund types and managers
 
 // Note: Import mobile-ux module separately from '@tonaiagent/core/mobile-ux'
 // for Telegram-native mobile-first UX features

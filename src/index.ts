@@ -2,7 +2,8 @@
  * TONAIAgent Core
  *
  * Multi-provider AI layer with production-grade security, plugin system, strategy engine,
- * no-code strategy builder, and institutional compliance for autonomous agents on TON blockchain.
+ * no-code strategy builder, marketplace, copy trading, and institutional compliance
+ * for autonomous agents on TON blockchain.
  *
  * Features:
  * - Multi-provider AI support (Groq, Anthropic, OpenAI, Google, xAI, OpenRouter)
@@ -20,6 +21,9 @@
  * - No-code visual strategy builder
  * - AI-assisted strategy creation
  * - Historical backtesting and simulation
+ * - Strategy marketplace and copy trading
+ * - Reputation and scoring system
+ * - Performance analytics and monetization
  * - Institutional compliance (KYC/AML, regulatory reporting)
  * - Portfolio risk management (VaR, stress testing)
  * - AI governance and explainability
@@ -37,6 +41,34 @@ export * as Plugins from './plugins';
 export * as Strategy from './strategy';
 
 // No-code module is available as separate import: '@tonaiagent/core/no-code'
+
+// Marketplace exports (with explicit exports to avoid conflicts)
+export {
+  // Marketplace service
+  createMarketplaceService,
+  DefaultMarketplaceService,
+  // Strategy
+  createStrategyManager,
+  DefaultStrategyManager,
+  // Copy trading
+  createCopyTradingEngine,
+  DefaultCopyTradingEngine,
+  // Reputation
+  createReputationManager,
+  DefaultReputationManager,
+  // Analytics
+  createAnalyticsEngine,
+  DefaultAnalyticsEngine,
+  // Monetization
+  createMonetizationManager,
+  DefaultMonetizationManager,
+  // Risk transparency
+  createRiskTransparencyManager,
+  DefaultRiskTransparencyManager,
+} from './marketplace';
+
+// Re-export marketplace types with namespace to avoid conflicts
+export type * as MarketplaceTypes from './marketplace/types';
 
 // Note: Import institutional module separately from '@tonaiagent/core/institutional'
 // to avoid naming conflicts with existing exports

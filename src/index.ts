@@ -28,9 +28,14 @@
  * - Institutional compliance (KYC/AML, regulatory reporting)
  * - Portfolio risk management (VaR, stress testing)
  * - AI governance and explainability
+ * - AI Safety, Alignment & Governance Framework
  */
 
 export * from './ai';
+
+// Re-export ai-safety with namespace to avoid conflicts with AI types
+// (both modules define types like FraudPattern, PolicyCondition, RiskContext, etc.)
+export * as AISafety from './ai-safety';
 export * from './security';
 export * from './tokenomics';
 

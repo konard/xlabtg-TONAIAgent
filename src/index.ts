@@ -11,6 +11,7 @@
  * - Risk and fraud detection
  * - Emergency controls and recovery mechanisms
  * - Comprehensive audit logging
+ * - Multi-agent coordination framework
  * - Modular plugin and tooling system
  * - TON-native tools (wallet, jettons, NFT)
  * - AI function calling integration
@@ -28,8 +29,12 @@ export * from './tokenomics';
 // Re-export plugins with namespace to avoid naming conflicts with AI types
 export * as Plugins from './plugins';
 
-// Re-export strategy with namespace to avoid naming conflicts with tokenomics types
-// (Both modules have ActionResult and StrategyPerformance types)
+// Re-export strategy with namespace to avoid naming conflicts with multi-agent and tokenomics types
+// (multiple modules define types like CapitalAllocation, ActionResult, and StrategyPerformance)
 export * as Strategy from './strategy';
+
+// Re-export multi-agent with namespace to avoid naming conflicts with tokenomics types
+// (both modules define GovernanceConfig, DelegationRequest, CapitalPool, GovernanceStats)
+export * as MultiAgent from './multi-agent';
 
 // No-code module is available as separate import: '@tonaiagent/core/no-code'

@@ -11,7 +11,9 @@
  * - Risk and fraud detection
  * - Emergency controls and recovery mechanisms
  * - Comprehensive audit logging
+ * - Autonomous Strategy Engine for DeFi automation
  */
 
 export * from './ai';
 export * from './security';
+export * from './strategy';

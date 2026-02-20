@@ -13,9 +13,7 @@ import {
   CustodyMode,
   CustodyConfig,
   AgentPermissions,
-  WalletInfo,
   TransactionRequest,
-  SigningRequest,
   SecurityEvent,
   SecurityEventCallback,
 } from './types';
@@ -288,7 +286,7 @@ export class NonCustodialProvider implements CustodyProvider {
 
   async updatePermissions(
     wallet: CustodyWallet,
-    permissions: Partial<AgentPermissions>
+    _permissions: Partial<AgentPermissions>
   ): Promise<void> {
     // In non-custodial mode, permissions are advisory only
     // The user's wallet enforces actual limits
@@ -309,13 +307,13 @@ export class NonCustodialProvider implements CustodyProvider {
     }
   }
 
-  async initiateRecovery(wallet: CustodyWallet): Promise<RecoverySession> {
+  async initiateRecovery(_wallet: CustodyWallet): Promise<RecoverySession> {
     throw new Error(
       'Recovery not supported in non-custodial mode. User must use their own wallet recovery.'
     );
   }
 
-  async completeRecovery(session: RecoverySession): Promise<CustodyWallet> {
+  async completeRecovery(_session: RecoverySession): Promise<CustodyWallet> {
     throw new Error('Recovery not supported in non-custodial mode.');
   }
 

@@ -19,11 +19,9 @@ import {
   MarketRiskScore,
   RiskFactor,
   RiskFlag,
-  RiskFlagType,
   RiskRecommendation,
   RiskConfig,
   SecurityRiskThresholds,
-  VelocityLimits,
   SecurityEvent,
   SecurityEventCallback,
 } from './types';
@@ -193,7 +191,6 @@ export class DefaultRiskEngine implements RiskEngine {
   private config: RiskConfig;
   private readonly eventCallbacks: SecurityEventCallback[] = [];
   private readonly blacklistedAddresses = new Set<string>();
-  private readonly suspiciousPatterns = new Map<string, number>(); // userId -> patternCount
 
   constructor(config?: Partial<RiskConfig>) {
     this.config = {
@@ -656,7 +653,7 @@ export class DefaultRiskEngine implements RiskEngine {
     return 0.6;
   }
 
-  private calculateTimeRisk(request: TransactionRequest): number {
+  private calculateTimeRisk(_request: TransactionRequest): number {
     const hour = new Date().getHours();
 
     // Higher risk during late night hours

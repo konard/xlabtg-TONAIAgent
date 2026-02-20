@@ -20,18 +20,12 @@ import {
   AuthorizationLayer,
   AuthorizationLayerResult,
   RequiredAction,
-  RequiredActionType,
   RiskLevel,
   AgentPermissions,
   UserLimits,
   SessionContext,
   RiskContext,
-  TransactionRiskScore,
   BehavioralRiskScore,
-  MarketRiskScore,
-  RiskFactor,
-  RiskFlag,
-  RiskRecommendation,
   SecurityEvent,
   SecurityEventCallback,
   AuthorizationConfig,
@@ -413,7 +407,7 @@ class StrategyValidationLayer {
 
 class RiskEngineLayer {
   async check(
-    request: TransactionRequest,
+    _request: TransactionRequest,
     context: RiskContext
   ): Promise<AuthorizationLayerResult> {
     const startTime = Date.now();
@@ -642,7 +636,7 @@ class RateLimitLayer {
 
 class AnomalyDetectionLayer {
   async check(
-    request: TransactionRequest,
+    _request: TransactionRequest,
     behavioralRisk: BehavioralRiskScore
   ): Promise<AuthorizationLayerResult> {
     const startTime = Date.now();

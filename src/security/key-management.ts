@@ -20,11 +20,9 @@ import {
   KeyStorageType,
   MPCConfig,
   HSMConfig,
-  SecureEnclaveConfig,
   KeyDerivationConfig,
   SigningRequest,
   SignatureInfo,
-  SigningStatus,
   SecurityEvent,
   SecurityEventCallback,
 } from './types';
@@ -221,7 +219,7 @@ export class HSMKeyStorage extends KeyStorageBackend {
 
   async generateKeyPair(
     keyId: string,
-    algorithm: 'ed25519' | 'secp256k1'
+    _algorithm: 'ed25519' | 'secp256k1'
   ): Promise<{ publicKey: string }> {
     // In production, this would communicate with actual HSM
     // For now, return a placeholder that indicates HSM is required
@@ -231,25 +229,25 @@ export class HSMKeyStorage extends KeyStorageBackend {
     );
   }
 
-  async sign(keyId: string, message: string): Promise<string> {
+  async sign(_keyId: string, _message: string): Promise<string> {
     throw new Error(
       `HSM signing requires actual HSM integration. Provider: ${this.config.provider}`
     );
   }
 
-  async verify(keyId: string, message: string, signature: string): Promise<boolean> {
+  async verify(_keyId: string, _message: string, _signature: string): Promise<boolean> {
     throw new Error(
       `HSM verification requires actual HSM integration. Provider: ${this.config.provider}`
     );
   }
 
-  async getPublicKey(keyId: string): Promise<string | null> {
+  async getPublicKey(_keyId: string): Promise<string | null> {
     throw new Error(
       `HSM public key retrieval requires actual HSM integration. Provider: ${this.config.provider}`
     );
   }
 
-  async deleteKey(keyId: string): Promise<void> {
+  async deleteKey(_keyId: string): Promise<void> {
     throw new Error(
       `HSM key deletion requires actual HSM integration. Provider: ${this.config.provider}`
     );
@@ -393,7 +391,8 @@ export class KeyDerivationService {
     const coinType = this.config.coinType; // 607 for TON
     const change = 0; // External chain
 
-    const hardened = this.config.hardened ? "'" : '';
+    // Note: hardened config is used for path generation format in production
+    // Currently using standard hardened format (with ')
 
     return `m/${purpose}'/${coinType}'/${accountIndex}'/${change}/${addressIndex}`;
   }
@@ -466,7 +465,7 @@ export class SecureKeyManager implements KeyManagementService {
 
   constructor(
     private readonly storage: KeyStorageBackend,
-    private readonly config: {
+    config: {
       mpc: MPCConfig;
       keyDerivation: KeyDerivationConfig;
     }
@@ -494,8 +493,8 @@ export class SecureKeyManager implements KeyManagementService {
     const algorithm = config?.algorithm ?? 'ed25519';
     const storageType = config?.storageType ?? this.storage.type;
 
-    // Generate key pair
-    const { publicKey } = await this.storage.generateKeyPair(keyId, algorithm);
+    // Generate key pair - publicKey is stored in secure storage
+    await this.storage.generateKeyPair(keyId, algorithm);
 
     // Create metadata
     const metadata: KeyMetadata = {
@@ -551,9 +550,9 @@ export class SecureKeyManager implements KeyManagementService {
     existingKey.status = 'pending_rotation';
     this.keys.set(keyId, existingKey);
 
-    // Generate new key
+    // Generate new key - publicKey is stored in secure storage
     const newKeyId = `${keyId}_v${existingKey.version + 1}`;
-    const { publicKey } = await this.storage.generateKeyPair(newKeyId, existingKey.algorithm);
+    await this.storage.generateKeyPair(newKeyId, existingKey.algorithm);
 
     // Create new metadata
     const newMetadata: KeyMetadata = {
@@ -649,7 +648,7 @@ export class SecureKeyManager implements KeyManagementService {
   /**
    * Generate MPC shares for a key
    */
-  async generateMPCShares(keyId: string, config: MPCConfig): Promise<KeyShare[]> {
+  async generateMPCShares(keyId: string, _config: MPCConfig): Promise<KeyShare[]> {
     const key = this.keys.get(keyId);
     if (!key) {
       throw new Error(`Key not found: ${keyId}`);
@@ -780,8 +779,8 @@ export class SecureKeyManager implements KeyManagementService {
 
     const childKeyId = `${parentKeyId}_derived_${path.replace(/\//g, '_')}`;
 
-    // In production, would derive actual child key from parent
-    const { publicKey } = await this.storage.generateKeyPair(childKeyId, parentKey.algorithm);
+    // In production, would derive actual child key from parent - publicKey stored in secure storage
+    await this.storage.generateKeyPair(childKeyId, parentKey.algorithm);
 
     const childMetadata: KeyMetadata = {
       id: childKeyId,

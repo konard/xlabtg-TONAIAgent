@@ -13,15 +13,7 @@
 import {
   AgentPermissions,
   CapabilitySet,
-  TradingCapability,
-  TransferCapability,
-  StakingCapability,
-  NftCapability,
-  GovernanceCapability,
   AccessControl,
-  TokenAccess,
-  ProtocolAccess,
-  TimeRestrictions,
   SessionLimits,
   RiskLevel,
   SecurityEvent,
@@ -553,7 +545,7 @@ export class DefaultPolicyManager implements PolicyManager {
   }
 
   evaluatePolicy(
-    permissions: AgentPermissions,
+    _permissions: AgentPermissions,
     context: PolicyContext
   ): PolicyEvaluationResult {
     const matchedRules: PolicyEvaluationResult['matchedRules'] = [];

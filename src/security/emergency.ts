@@ -13,7 +13,6 @@
 import {
   EmergencyEvent,
   EmergencyType,
-  EmergencyStatus,
   EmergencyAction,
   EmergencyActionType,
   RecoveryRequest,
@@ -148,10 +147,8 @@ export class DefaultEmergencyController implements EmergencyController {
   private readonly emergencies = new Map<string, EmergencyEvent>();
   private readonly pausedAgents = new Set<string>();
   private killSwitchActive = false;
-  private autoResponseEnabled = false;
   private autoResponseConfig: AutoResponseConfig;
   private readonly eventCallbacks: SecurityEventCallback[] = [];
-  private recentActions: Date[] = [];
 
   constructor(config?: EmergencyConfig) {
     this.autoResponseConfig = {
@@ -351,18 +348,15 @@ export class DefaultEmergencyController implements EmergencyController {
   }
 
   enableAutoResponse(): void {
-    this.autoResponseEnabled = true;
     this.autoResponseConfig.enabled = true;
   }
 
   disableAutoResponse(): void {
-    this.autoResponseEnabled = false;
     this.autoResponseConfig.enabled = false;
   }
 
   configureAutoResponse(config: AutoResponseConfig): void {
     this.autoResponseConfig = { ...this.autoResponseConfig, ...config };
-    this.autoResponseEnabled = config.enabled;
   }
 
   onEvent(callback: SecurityEventCallback): void {

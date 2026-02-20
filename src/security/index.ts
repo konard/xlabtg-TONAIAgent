@@ -170,13 +170,6 @@ export {
 
 import {
   SecurityConfig,
-  CustodyConfig,
-  MPCConfig,
-  KeyDerivationConfig,
-  AuthorizationConfig,
-  RiskConfig,
-  EmergencyConfig,
-  AuditConfig,
   SecurityEvent,
   SecurityEventCallback,
 } from './types';

@@ -14,10 +14,8 @@ import {
   AuditEvent,
   AuditEventType,
   AuditActor,
-  AuditResource,
   AuditContext,
   AuditConfig,
-  SecurityEvent,
   SecurityEventCallback,
 } from './types';
 
@@ -627,7 +625,7 @@ export class DefaultAuditLogger implements AuditLogger {
   private generateReportSections(
     reportType: ReportType,
     events: AuditEvent[],
-    options?: ReportOptions
+    _options?: ReportOptions
   ): ReportSection[] {
     const sections: ReportSection[] = [];
 

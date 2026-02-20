@@ -28,6 +28,7 @@
  * - Institutional compliance (KYC/AML, regulatory reporting)
  * - Portfolio risk management (VaR, stress testing)
  * - AI governance and explainability
+ * - Global data and signal platform for AI agents
  */
 
 export * from './ai';
@@ -77,3 +78,7 @@ export type * as MarketplaceTypes from './marketplace/types';
 
 // Note: Import institutional module separately from '@tonaiagent/core/institutional'
 // to avoid naming conflicts with existing exports
+
+// Re-export data-platform with namespace to avoid naming conflicts
+// (data-platform defines MarketDataService which could conflict with other modules)
+export * as DataPlatform from './data-platform';

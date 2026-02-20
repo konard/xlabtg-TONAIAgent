@@ -40,9 +40,14 @@
  * - Viral consumer growth engine (referrals, social trading, gamification)
  * - Growth analytics and A/B testing
  * - Anti-abuse and sybil detection
+ * - AI Safety, Alignment & Governance Framework
  */
 
 export * from './ai';
+
+// Re-export ai-safety with namespace to avoid conflicts with AI types
+// (both modules define types like FraudPattern, PolicyCondition, RiskContext, etc.)
+export * as AISafety from './ai-safety';
 export * from './security';
 export * from './tokenomics';
 

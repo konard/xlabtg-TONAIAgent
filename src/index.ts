@@ -4,7 +4,7 @@
  * Multi-provider AI layer with production-grade security, plugin system, strategy engine,
  * no-code strategy builder, marketplace, copy trading, institutional compliance,
  * omnichain infrastructure, agent launchpad, autonomous hedge fund infrastructure,
- * and ecosystem fund for autonomous agents on TON blockchain.
+ * AI safety/alignment framework, and ecosystem fund for autonomous agents on TON blockchain.
  *
  * Features:
  * - Multi-provider AI support (Groq, Anthropic, OpenAI, Google, xAI, OpenRouter)
@@ -37,10 +37,15 @@
  * - AI-driven investment framework (signals, predictions, RL)
  * - Institutional portfolio engine (diversification, rebalancing)
  * - Continuous learning system (backtesting, live adaptation)
+ * - AI Safety, Alignment & Governance Framework
  * - Ecosystem fund (treasury, grants, investments, incubation, incentives)
  */
 
 export * from './ai';
+
+// Re-export ai-safety with namespace to avoid conflicts with AI types
+// (both modules define types like FraudPattern, PolicyCondition, RiskContext, etc.)
+export * as AISafety from './ai-safety';
 export * from './security';
 export * from './tokenomics';
 

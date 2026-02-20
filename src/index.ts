@@ -1,7 +1,7 @@
 /**
  * TONAIAgent Core
  *
- * Multi-provider AI layer with production-grade security and institutional compliance
+ * Multi-provider AI layer with production-grade security, plugin system, and institutional compliance
  * for autonomous agents on TON blockchain.
  *
  * Features:
@@ -12,6 +12,9 @@
  * - Risk and fraud detection
  * - Emergency controls and recovery mechanisms
  * - Comprehensive audit logging
+ * - Modular plugin and tooling system
+ * - TON-native tools (wallet, jettons, NFT)
+ * - AI function calling integration
  * - Institutional compliance (KYC/AML, regulatory reporting)
  * - Portfolio risk management (VaR, stress testing)
  * - AI governance and explainability
@@ -19,5 +22,9 @@
 
 export * from './ai';
 export * from './security';
+
+// Re-export plugins with namespace to avoid naming conflicts with AI types
+export * as Plugins from './plugins';
+
 // Note: Import institutional module separately from '@tonaiagent/core/institutional'
 // to avoid naming conflicts with existing exports

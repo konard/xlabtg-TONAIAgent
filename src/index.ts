@@ -11,7 +11,9 @@
  * - Risk and fraud detection
  * - Emergency controls and recovery mechanisms
  * - Comprehensive audit logging
+ * - Multi-agent coordination framework
  */
 
 export * from './ai';
 export * from './security';
+export * from './multi-agent';

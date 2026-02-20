@@ -2,7 +2,7 @@
  * TONAIAgent Core
  *
  * Multi-provider AI layer with production-grade security, plugin system, strategy engine,
- * and institutional compliance for autonomous agents on TON blockchain.
+ * no-code strategy builder, and institutional compliance for autonomous agents on TON blockchain.
  *
  * Features:
  * - Multi-provider AI support (Groq, Anthropic, OpenAI, Google, xAI, OpenRouter)
@@ -16,6 +16,9 @@
  * - TON-native tools (wallet, jettons, NFT)
  * - AI function calling integration
  * - Autonomous Strategy Engine for DeFi automation
+ * - No-code visual strategy builder
+ * - AI-assisted strategy creation
+ * - Historical backtesting and simulation
  * - Institutional compliance (KYC/AML, regulatory reporting)
  * - Portfolio risk management (VaR, stress testing)
  * - AI governance and explainability
@@ -28,6 +31,8 @@ export * from './security';
 export * as Plugins from './plugins';
 
 export * from './strategy';
+
+// No-code module is available as separate import: '@tonaiagent/core/no-code'
 
 // Note: Import institutional module separately from '@tonaiagent/core/institutional'
 // to avoid naming conflicts with existing exports

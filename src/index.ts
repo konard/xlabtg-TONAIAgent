@@ -24,6 +24,7 @@
  * - Strategy marketplace and copy trading
  * - Reputation and scoring system
  * - Performance analytics and monetization
+ * - Tokenomics and agent economy (staking, governance, rewards, reputation)
  * - Institutional compliance (KYC/AML, regulatory reporting)
  * - Portfolio risk management (VaR, stress testing)
  * - AI governance and explainability
@@ -31,14 +32,18 @@
 
 export * from './ai';
 export * from './security';
-export * from './multi-agent';
+export * from './tokenomics';
 
 // Re-export plugins with namespace to avoid naming conflicts with AI types
 export * as Plugins from './plugins';
 
-// Re-export strategy with namespace to avoid naming conflicts with multi-agent types
-// (both modules define CapitalAllocation with different structures)
+// Re-export strategy with namespace to avoid naming conflicts with multi-agent and tokenomics types
+// (multiple modules define types like CapitalAllocation, ActionResult, and StrategyPerformance)
 export * as Strategy from './strategy';
+
+// Re-export multi-agent with namespace to avoid naming conflicts with tokenomics types
+// (both modules define GovernanceConfig, DelegationRequest, CapitalPool, GovernanceStats)
+export * as MultiAgent from './multi-agent';
 
 // No-code module is available as separate import: '@tonaiagent/core/no-code'
 

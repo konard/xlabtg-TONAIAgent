@@ -4,7 +4,8 @@
  * Multi-provider AI layer with production-grade security, plugin system, strategy engine,
  * no-code strategy builder, marketplace, copy trading, institutional compliance,
  * omnichain infrastructure, agent launchpad, autonomous hedge fund infrastructure,
- * and Telegram-native mobile-first UX for autonomous agents on TON blockchain.
+ * TON Super App (wallet, AI agents, social layer, Telegram Mini App),
+ * and Telegram-native mobile-first UX for autonomous finance on TON blockchain.
  *
  * Features:
  * - Multi-provider AI support (Groq, Anthropic, OpenAI, Google, xAI, OpenRouter)
@@ -38,6 +39,15 @@
  * - Institutional portfolio engine (diversification, rebalancing)
  * - Continuous learning system (backtesting, live adaptation)
  * - AI Safety, Alignment & Governance Framework
+ * - Super App: Smart Wallet with MPC recovery
+ * - Super App: Agent Dashboard for monitoring and automation
+ * - Super App: Social Layer with profiles, leaderboards, discussions
+ * - Super App: Financial Dashboard with portfolio, risk, analytics
+ * - Super App: Notifications and real-time alerts
+ * - Super App: Telegram Mini App integration
+ * - Super App: Gamification and growth mechanisms
+ * - Super App: Embedded AI Assistant powered by Groq
+ * - Super App: Premium subscriptions and monetization
  * - Telegram-native mobile-first UX with conversational AI
  */
 
@@ -110,6 +120,9 @@ export * as HedgeFund from './hedgefund';
 
 // Note: Import hedgefund module separately from '@tonaiagent/core/hedgefund'
 // for direct access to hedge fund types and managers
+
+// Note: Import superapp module separately from '@tonaiagent/core/superapp'
+// to access the full Super App functionality (wallet, agents, social, financial, etc.)
 
 // Note: Import mobile-ux module separately from '@tonaiagent/core/mobile-ux'
 // for Telegram-native mobile-first UX features

@@ -1,7 +1,7 @@
 {
   "name": "@tonaiagent/core",
   "version": "1.4.0",
-  "description": "Multi-provider AI layer with production-grade security, multi-agent coordination, strategy engine, plugin system, no-code visual builder, marketplace, copy trading, tokenomics, institutional compliance, omnichain infrastructure, agent launchpad, autonomous hedge fund infrastructure, AI safety/alignment framework, and AI-native personal finance for autonomous agents on TON blockchain"
+  "description": "Multi-provider AI layer with production-grade security, multi-agent coordination, strategy engine, plugin system, no-code visual builder, marketplace, copy trading, tokenomics, institutional compliance, omnichain infrastructure, agent launchpad, autonomous hedge fund infrastructure, AI safety/alignment framework, and AI-native personal finance for autonomous agents on TON blockchain",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",

@@ -1,9 +1,10 @@
 /**
  * TONAIAgent Core
  *
- * Multi-provider AI layer with production-grade security, plugin system, strategy engine,
- * no-code strategy builder, marketplace, copy trading, and institutional compliance
- * for autonomous agents on TON blockchain.
+ * TON Super App - "The WeChat of Autonomous Finance"
+ *
+ * A comprehensive TON-native platform combining smart wallet, AI agents, marketplace,
+ * social layer, financial dashboard, Telegram integration, and gamification.
  *
  * Features:
  * - Multi-provider AI support (Groq, Anthropic, OpenAI, Google, xAI, OpenRouter)
@@ -28,6 +29,15 @@
  * - Institutional compliance (KYC/AML, regulatory reporting)
  * - Portfolio risk management (VaR, stress testing)
  * - AI governance and explainability
+ * - Super App: Smart Wallet with MPC recovery
+ * - Super App: Agent Dashboard for monitoring and automation
+ * - Super App: Social Layer with profiles, leaderboards, discussions
+ * - Super App: Financial Dashboard with portfolio, risk, analytics
+ * - Super App: Notifications and real-time alerts
+ * - Super App: Telegram Mini App integration
+ * - Super App: Gamification and growth mechanisms
+ * - Super App: Embedded AI Assistant powered by Groq
+ * - Super App: Premium subscriptions and monetization
  */
 
 export * from './ai';
@@ -77,3 +87,6 @@ export type * as MarketplaceTypes from './marketplace/types';
 
 // Note: Import institutional module separately from '@tonaiagent/core/institutional'
 // to avoid naming conflicts with existing exports
+
+// Note: Import superapp module separately from '@tonaiagent/core/superapp'
+// to access the full Super App functionality (wallet, agents, social, financial, etc.)

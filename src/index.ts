@@ -2,8 +2,8 @@
  * TONAIAgent Core
  *
  * Multi-provider AI layer with production-grade security, plugin system, strategy engine,
- * no-code strategy builder, marketplace, copy trading, and institutional compliance
- * for autonomous agents on TON blockchain.
+ * no-code strategy builder, marketplace, copy trading, institutional compliance, and
+ * autonomous hedge fund infrastructure for AI agents on TON blockchain.
  *
  * Features:
  * - Multi-provider AI support (Groq, Anthropic, OpenAI, Google, xAI, OpenRouter)
@@ -28,6 +28,10 @@
  * - Institutional compliance (KYC/AML, regulatory reporting)
  * - Portfolio risk management (VaR, stress testing)
  * - AI governance and explainability
+ * - Autonomous Hedge Fund Architecture (portfolio, execution, risk agents)
+ * - AI-driven investment framework (signals, predictions, RL)
+ * - Institutional portfolio engine (diversification, rebalancing)
+ * - Continuous learning system (backtesting, live adaptation)
  */
 
 export * from './ai';
@@ -75,5 +79,12 @@ export {
 // Re-export marketplace types with namespace to avoid conflicts
 export type * as MarketplaceTypes from './marketplace/types';
 
+// Re-export hedgefund with namespace to avoid naming conflicts
+// (hedgefund module defines StrategyAllocation, PortfolioPerformance, etc.)
+export * as HedgeFund from './hedgefund';
+
 // Note: Import institutional module separately from '@tonaiagent/core/institutional'
 // to avoid naming conflicts with existing exports
+
+// Note: Import hedgefund module separately from '@tonaiagent/core/hedgefund'
+// for direct access to hedge fund types and managers

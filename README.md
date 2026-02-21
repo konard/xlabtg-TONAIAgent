@@ -763,9 +763,9 @@ We welcome contributions from the community! Please read our contributing guidel
 
 | Platform | Link |
 |----------|------|
-| **Telegram** | [t.me/TONAIAgent](https://t.me/TONAIAgent) |
+| **Telegram** | [t.me/TONAIAgent](https://t.me/xlab_tg) |
 | **GitHub** | [github.com/xlabtg/TONAIAgent](https://github.com/xlabtg/TONAIAgent) |
-| **Documentation** | [docs.tonaiagent.com](https://docs.tonaiagent.com) |
+| **Documentation** | [Documentation](docs/) |
 
 ### Developer Resources
 

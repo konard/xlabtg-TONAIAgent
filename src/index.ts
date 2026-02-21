@@ -190,3 +190,6 @@ export {
 
 // Note: Import protocol module separately from '@tonaiagent/core/protocol'
 // for full access to all protocol features (identity, capabilities, messaging, etc.)
+
+// Note: Import SDK module separately from '@tonaiagent/core/sdk'
+// for Enterprise SDK & Developer Platform (agent management, extensions, sandbox)

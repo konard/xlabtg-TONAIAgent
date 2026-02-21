@@ -763,7 +763,7 @@ We welcome contributions from the community! Please read our contributing guidel
 
 | Platform | Link |
 |----------|------|
-| **Telegram** | [t.me/TONAIAgent](https://t.me/xlab_tg) |
+| **Telegram** | [t.me/xlab_tg](https://t.me/xlab_tg) |
 | **GitHub** | [github.com/xlabtg/TONAIAgent](https://github.com/xlabtg/TONAIAgent) |
 | **Documentation** | [Documentation](docs/) |
 

@@ -380,17 +380,21 @@ export class DefaultExpansionManager implements ExpansionManager {
   private prospectToStrategy: Map<string, string> = new Map();
   private expenses: Map<string, ExpenseRecord[]> = new Map();
   private eventCallbacks: InstitutionalNetworkEventCallback[] = [];
-  private _config: ExpansionConfig;
+  private config: ExpansionConfig;
   private lastUpdatedAt: Date = new Date();
 
   constructor(config?: Partial<ExpansionConfig>) {
-    this._config = {
+    this.config = {
       enabled: true,
       priorityRegions: ['north_america', 'europe', 'asia_pacific'],
       targetPartnerTypes: ['hedge_fund', 'crypto_fund', 'custodian', 'bank'],
       budgetAllocation: '10000000',
       ...config,
     };
+  }
+
+  getConfig(): ExpansionConfig {
+    return this.config;
   }
 
   async createExpansionStrategy(request: CreateExpansionStrategyRequest): Promise<ExpansionStrategy> {

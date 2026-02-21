@@ -11,15 +11,10 @@ import {
   NetworkReportType,
   ReportingPeriod,
   ReportSection,
-  ReportContent,
-  ReportChart,
-  ReportTable,
   ReportSummary,
   KeyMetric,
   ReportAlert,
   ActionItem,
-  ReportAttachment,
-  ReportDistribution,
   ReportRecipient,
   NetworkMetrics,
   PartnerNetworkMetrics,
@@ -29,10 +24,6 @@ import {
   PerformanceMetrics,
   NetworkRiskMetrics,
   ComplianceMetrics,
-  ConcentrationRiskMetrics,
-  CounterpartyRiskMetrics,
-  OperationalRiskMetrics,
-  MarketRiskMetrics,
   InstitutionalNetworkEvent,
   InstitutionalNetworkEventCallback,
   InstitutionalReportingConfig,
@@ -331,6 +322,10 @@ export class DefaultInstitutionalReportingManager implements InstitutionalReport
     this.riskData = this.createDefaultRiskMetrics();
     this.volumeData = this.createDefaultVolumeMetrics();
     this.performanceData = this.createDefaultPerformanceMetrics();
+  }
+
+  getConfig(): InstitutionalReportingConfig {
+    return this.config;
   }
 
   async generateReport(
@@ -727,6 +722,10 @@ export class DefaultInstitutionalReportingManager implements InstitutionalReport
     this.eventCallbacks.push(callback);
   }
 
+  getReportingConfig(): InstitutionalReportingConfig {
+    return this.config;
+  }
+
   getReportingHealth(): ReportingHealth {
     const now = new Date();
     const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
@@ -844,7 +843,7 @@ export class DefaultInstitutionalReportingManager implements InstitutionalReport
   private async generateReportSections(
     type: NetworkReportType,
     period: ReportingPeriod,
-    options?: ReportGenerationOptions
+    _options?: ReportGenerationOptions
   ): Promise<ReportSection[]> {
     const sections: ReportSection[] = [];
 
@@ -913,7 +912,7 @@ export class DefaultInstitutionalReportingManager implements InstitutionalReport
     return sections;
   }
 
-  private async createOverviewSection(period: ReportingPeriod): Promise<ReportSection> {
+  private async createOverviewSection(_period: ReportingPeriod): Promise<ReportSection> {
     const metrics = await this.collectNetworkMetrics();
 
     return {
@@ -955,7 +954,7 @@ export class DefaultInstitutionalReportingManager implements InstitutionalReport
     };
   }
 
-  private async createPartnerSummarySection(period: ReportingPeriod): Promise<ReportSection> {
+  private async createPartnerSummarySection(_period: ReportingPeriod): Promise<ReportSection> {
     const partners = await this.getPartnerMetrics();
 
     return {
@@ -1005,7 +1004,7 @@ export class DefaultInstitutionalReportingManager implements InstitutionalReport
     };
   }
 
-  private async createVolumeSection(period: ReportingPeriod): Promise<ReportSection> {
+  private async createVolumeSection(_period: ReportingPeriod): Promise<ReportSection> {
     const volume = await this.getVolumeMetrics();
 
     return {
@@ -1034,7 +1033,7 @@ export class DefaultInstitutionalReportingManager implements InstitutionalReport
     };
   }
 
-  private async createPerformanceSection(period: ReportingPeriod): Promise<ReportSection> {
+  private async createPerformanceSection(_period: ReportingPeriod): Promise<ReportSection> {
     const performance = await this.getPerformanceMetrics();
 
     return {
@@ -1063,7 +1062,7 @@ export class DefaultInstitutionalReportingManager implements InstitutionalReport
     };
   }
 
-  private async createPartnerDetailsSection(period: ReportingPeriod): Promise<ReportSection> {
+  private async createPartnerDetailsSection(_period: ReportingPeriod): Promise<ReportSection> {
     return {
       id: this.generateId('section'),
       title: 'Partner Performance Details',
@@ -1075,7 +1074,7 @@ export class DefaultInstitutionalReportingManager implements InstitutionalReport
     };
   }
 
-  private async createPartnerTrendsSection(period: ReportingPeriod): Promise<ReportSection> {
+  private async createPartnerTrendsSection(_period: ReportingPeriod): Promise<ReportSection> {
     return {
       id: this.generateId('section'),
       title: 'Partner Trends',
@@ -1087,7 +1086,7 @@ export class DefaultInstitutionalReportingManager implements InstitutionalReport
     };
   }
 
-  private async createPartnerComparisonSection(period: ReportingPeriod): Promise<ReportSection> {
+  private async createPartnerComparisonSection(_period: ReportingPeriod): Promise<ReportSection> {
     return {
       id: this.generateId('section'),
       title: 'Partner Comparison',
@@ -1099,7 +1098,7 @@ export class DefaultInstitutionalReportingManager implements InstitutionalReport
     };
   }
 
-  private async createLiquidityOverviewSection(period: ReportingPeriod): Promise<ReportSection> {
+  private async createLiquidityOverviewSection(_period: ReportingPeriod): Promise<ReportSection> {
     const liquidity = await this.getLiquidityMetrics();
 
     return {
@@ -1120,7 +1119,7 @@ export class DefaultInstitutionalReportingManager implements InstitutionalReport
     };
   }
 
-  private async createLiquiditySourcesSection(period: ReportingPeriod): Promise<ReportSection> {
+  private async createLiquiditySourcesSection(_period: ReportingPeriod): Promise<ReportSection> {
     return {
       id: this.generateId('section'),
       title: 'Liquidity Sources',
@@ -1132,7 +1131,7 @@ export class DefaultInstitutionalReportingManager implements InstitutionalReport
     };
   }
 
-  private async createLiquidityTrendsSection(period: ReportingPeriod): Promise<ReportSection> {
+  private async createLiquidityTrendsSection(_period: ReportingPeriod): Promise<ReportSection> {
     return {
       id: this.generateId('section'),
       title: 'Liquidity Trends',
@@ -1144,7 +1143,7 @@ export class DefaultInstitutionalReportingManager implements InstitutionalReport
     };
   }
 
-  private async createCustodyOverviewSection(period: ReportingPeriod): Promise<ReportSection> {
+  private async createCustodyOverviewSection(_period: ReportingPeriod): Promise<ReportSection> {
     const custody = await this.getCustodyMetrics();
 
     return {
@@ -1165,7 +1164,7 @@ export class DefaultInstitutionalReportingManager implements InstitutionalReport
     };
   }
 
-  private async createCustodyAssetsSection(period: ReportingPeriod): Promise<ReportSection> {
+  private async createCustodyAssetsSection(_period: ReportingPeriod): Promise<ReportSection> {
     return {
       id: this.generateId('section'),
       title: 'Custody Assets',
@@ -1177,7 +1176,7 @@ export class DefaultInstitutionalReportingManager implements InstitutionalReport
     };
   }
 
-  private async createCustodySecuritySection(period: ReportingPeriod): Promise<ReportSection> {
+  private async createCustodySecuritySection(_period: ReportingPeriod): Promise<ReportSection> {
     return {
       id: this.generateId('section'),
       title: 'Custody Security',
@@ -1189,7 +1188,7 @@ export class DefaultInstitutionalReportingManager implements InstitutionalReport
     };
   }
 
-  private async createComplianceOverviewSection(period: ReportingPeriod): Promise<ReportSection> {
+  private async createComplianceOverviewSection(_period: ReportingPeriod): Promise<ReportSection> {
     const compliance = await this.getComplianceMetrics();
 
     return {
@@ -1210,7 +1209,7 @@ export class DefaultInstitutionalReportingManager implements InstitutionalReport
     };
   }
 
-  private async createComplianceStatusSection(period: ReportingPeriod): Promise<ReportSection> {
+  private async createComplianceStatusSection(_period: ReportingPeriod): Promise<ReportSection> {
     return {
       id: this.generateId('section'),
       title: 'Compliance Status',
@@ -1222,7 +1221,7 @@ export class DefaultInstitutionalReportingManager implements InstitutionalReport
     };
   }
 
-  private async createComplianceAlertsSection(period: ReportingPeriod): Promise<ReportSection> {
+  private async createComplianceAlertsSection(_period: ReportingPeriod): Promise<ReportSection> {
     return {
       id: this.generateId('section'),
       title: 'Compliance Alerts',
@@ -1234,7 +1233,7 @@ export class DefaultInstitutionalReportingManager implements InstitutionalReport
     };
   }
 
-  private async createRiskOverviewSection(period: ReportingPeriod): Promise<ReportSection> {
+  private async createRiskOverviewSection(_period: ReportingPeriod): Promise<ReportSection> {
     const risk = await this.getRiskMetrics();
 
     return {
@@ -1255,7 +1254,7 @@ export class DefaultInstitutionalReportingManager implements InstitutionalReport
     };
   }
 
-  private async createRiskBreakdownSection(period: ReportingPeriod): Promise<ReportSection> {
+  private async createRiskBreakdownSection(_period: ReportingPeriod): Promise<ReportSection> {
     return {
       id: this.generateId('section'),
       title: 'Risk Breakdown',
@@ -1267,7 +1266,7 @@ export class DefaultInstitutionalReportingManager implements InstitutionalReport
     };
   }
 
-  private async createRiskMitigationSection(period: ReportingPeriod): Promise<ReportSection> {
+  private async createRiskMitigationSection(_period: ReportingPeriod): Promise<ReportSection> {
     return {
       id: this.generateId('section'),
       title: 'Risk Mitigation',
@@ -1279,7 +1278,7 @@ export class DefaultInstitutionalReportingManager implements InstitutionalReport
     };
   }
 
-  private async createExecutiveSummarySection(period: ReportingPeriod): Promise<ReportSection> {
+  private async createExecutiveSummarySection(_period: ReportingPeriod): Promise<ReportSection> {
     return {
       id: this.generateId('section'),
       title: 'Executive Summary',
@@ -1295,7 +1294,7 @@ export class DefaultInstitutionalReportingManager implements InstitutionalReport
     };
   }
 
-  private async createKeyMetricsSection(period: ReportingPeriod): Promise<ReportSection> {
+  private async createKeyMetricsSection(_period: ReportingPeriod): Promise<ReportSection> {
     return {
       id: this.generateId('section'),
       title: 'Key Metrics',
@@ -1307,7 +1306,7 @@ export class DefaultInstitutionalReportingManager implements InstitutionalReport
     };
   }
 
-  private async createStrategicRecommendationsSection(period: ReportingPeriod): Promise<ReportSection> {
+  private async createStrategicRecommendationsSection(_period: ReportingPeriod): Promise<ReportSection> {
     return {
       id: this.generateId('section'),
       title: 'Strategic Recommendations',
@@ -1319,7 +1318,7 @@ export class DefaultInstitutionalReportingManager implements InstitutionalReport
     };
   }
 
-  private async generateReportSummary(type: NetworkReportType, sections: ReportSection[]): Promise<ReportSummary> {
+  private async generateReportSummary(_type: NetworkReportType, sections: ReportSection[]): Promise<ReportSummary> {
     const metrics = await this.collectNetworkMetrics();
 
     const keyHighlights = sections.flatMap((s) => s.insights).slice(0, 5);

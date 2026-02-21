@@ -10,21 +10,16 @@
 import {
   TreasuryType,
   TreasuryConnection,
-  TreasuryConfig,
   TreasurySigner,
   TreasuryPermissions,
   AllocationStrategy,
   TargetAllocation,
   AutomationConfig,
-  AutomatedOperation,
-  OperationCondition,
-  OperationLimits,
   TreasuryReportingConfig,
   TreasuryMetrics,
   TreasuryInteropConfig,
   InstitutionalNetworkEvent,
   InstitutionalNetworkEventCallback,
-  GeographicRegion,
 } from './types';
 
 // ============================================================================
@@ -827,7 +822,7 @@ export class DefaultTreasuryInteropManager implements TreasuryInteropManager {
     return positions;
   }
 
-  async getPositionHistory(connectionId: string, asset: string, period: string): Promise<PositionHistoryEntry[]> {
+  async getPositionHistory(_connectionId: string, _asset: string, _period: string): Promise<PositionHistoryEntry[]> {
     // In a real implementation, this would fetch historical position data
     return [];
   }

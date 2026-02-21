@@ -277,6 +277,10 @@ export class DefaultPartnerRegistryManager implements PartnerRegistryManager {
     };
   }
 
+  getConfig(): PartnerRegistryConfig {
+    return this.config;
+  }
+
   async registerPartner(request: RegisterPartnerRequest): Promise<InstitutionalPartner> {
     const partnerId = this.generateId('partner');
 

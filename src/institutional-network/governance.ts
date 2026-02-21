@@ -10,7 +10,6 @@ import {
   InstitutionalGovernance,
   GovernanceStructure,
   GovernanceTier,
-  GovernanceMember,
   DecisionAuthority,
   AdvisoryBoard,
   AdvisoryMember,
@@ -24,7 +23,6 @@ import {
   VotingMechanism,
   VotingResult,
   GovernanceDecision,
-  TermDetails,
   VetoRight,
   InstitutionalGovernanceConfig,
   InstitutionalNetworkEvent,
@@ -383,6 +381,10 @@ export class DefaultInstitutionalGovernanceManager implements InstitutionalGover
       policyManagementEnabled: true,
       ...config,
     };
+  }
+
+  getConfig(): InstitutionalGovernanceConfig {
+    return this.config;
   }
 
   // ============================================================================

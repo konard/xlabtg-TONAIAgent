@@ -58,6 +58,7 @@
  * - AI-native personal finance (savings automation, wealth management)
  * - Life-stage personalization and behavioral finance
  * - Financial education with gamification
+ * - Token strategy (launch, liquidity flywheel, valuation, simulation)
  */
 
 export * from './ai';
@@ -173,3 +174,6 @@ export type * as GrowthTypes from './growth/types';
 
 // Note: Import personal-finance module separately from '@tonaiagent/core/personal-finance'
 // for AI-native personal finance features (savings, investments, education, dashboard)
+
+// Note: Import token-strategy module separately from '@tonaiagent/core/token-strategy'
+// for strategic token launch, liquidity flywheel, valuation modeling, and simulation

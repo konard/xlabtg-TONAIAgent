@@ -58,6 +58,11 @@
  * - AI-native personal finance (savings automation, wealth management)
  * - Life-stage personalization and behavioral finance
  * - Financial education with gamification
+ * - Global institutional network (partner registry, custody, liquidity, treasury)
+ * - Institutional onboarding framework with due diligence
+ * - Global expansion strategy and roadmap
+ * - AI-powered institutional advantage (risk modeling, anomaly detection)
+ * - Institutional governance (advisory boards, committees, policies)
  */
 
 export * from './ai';
@@ -173,3 +178,7 @@ export type * as GrowthTypes from './growth/types';
 
 // Note: Import personal-finance module separately from '@tonaiagent/core/personal-finance'
 // for AI-native personal finance features (savings, investments, education, dashboard)
+
+// Note: Import institutional-network module separately from '@tonaiagent/core/institutional-network'
+// for global institutional network features (partner registry, custody infrastructure, liquidity network,
+// treasury interoperability, institutional onboarding, reporting, global expansion, AI advantage, governance)

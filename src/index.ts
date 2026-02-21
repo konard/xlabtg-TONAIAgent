@@ -174,6 +174,26 @@ export type * as GrowthTypes from './growth/types';
 // Note: Import personal-finance module separately from '@tonaiagent/core/personal-finance'
 // for AI-native personal finance features (savings, investments, education, dashboard)
 
+// Open Agent Protocol - Universal standard for autonomous agents
+// Provides identity, capabilities, messaging, security, reputation, plugins, cross-chain, and governance
+export * as Protocol from './protocol';
+export {
+  // Main protocol class
+  OpenAgentProtocol,
+  createAgent,
+  // Types
+  type OpenAgentProtocolConfig,
+  type CreateAgentInput,
+  type ProtocolAgent,
+  type ProtocolEventHandler,
+} from './protocol';
+
+// Note: Import protocol module separately from '@tonaiagent/core/protocol'
+// for full access to all protocol features (identity, capabilities, messaging, etc.)
+
+// Note: Import SDK module separately from '@tonaiagent/core/sdk'
+// for Enterprise SDK & Developer Platform (agent management, extensions, sandbox)
+
 // Note: Import ai-credit module separately from '@tonaiagent/core/ai-credit'
 // for AI-native credit, lending, and underwriting features (CoinRabbit integration,
 // credit scoring, collateral management, underwriting engine, lending strategies)

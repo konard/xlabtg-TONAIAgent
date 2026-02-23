@@ -769,7 +769,7 @@ We welcome contributions from the community! Please read our contributing guidel
 
 ### Developer Resources
 
-- [API Documentation](docs/api.md)
+- [Documentation](docs/)
 - [SDK Reference](docs/protocol-sdk.md)
 - [Plugin Development](docs/plugins.md)
 - [Strategy DSL Guide](docs/strategy.md)

@@ -1,6 +1,7 @@
 <?php
 /**
  * TON AI Agent Installer - English Translations
+ * Version 2.0.0 - Production-Grade Edition
  */
 
 return [
@@ -14,6 +15,7 @@ return [
     'save' => 'Save',
     'test' => 'Test Connection',
     'footer_text' => 'TON AI Agent - AI-Powered Trading Platform',
+    'complete_install' => 'Complete Installation',
 
     // Step Names
     'step_requirements' => 'Requirements',
@@ -46,7 +48,7 @@ return [
     'req_ext_json' => 'JSON Extension',
     'req_ext_json_detail' => 'Required for API responses',
     'req_writable' => 'Writable Directories',
-    'req_writable_detail' => 'App directory must be writable',
+    'req_writable_detail' => 'directory must be writable',
     'req_pass' => 'Pass',
     'req_fail' => 'Fail',
     'req_warn' => 'Warning',
@@ -107,20 +109,39 @@ return [
     // Step 5: AI Providers
     'step_5_title' => 'AI Provider Setup',
     'step_5_desc' => 'Configure AI providers for intelligent agent operations.',
+    'ai_setup_intro' => 'Configure at least one AI provider. Groq is recommended for fastest inference.',
     'ai_default' => 'Default Provider',
     'ai_groq' => 'Groq',
     'ai_groq_desc' => 'Fastest inference, recommended',
     'ai_openai' => 'OpenAI',
-    'ai_openai_desc' => 'GPT-4 and GPT-3.5 models',
+    'ai_openai_desc' => 'GPT-4o and GPT-4 models',
     'ai_anthropic' => 'Anthropic',
-    'ai_anthropic_desc' => 'Claude models',
+    'ai_anthropic_desc' => 'Claude 3.5 and Claude 3 models',
+    'ai_google' => 'Google AI',
+    'ai_google_desc' => 'Gemini 1.5 and 2.0 models',
+    'ai_xai' => 'xAI',
+    'ai_xai_desc' => 'Grok 2 models',
+    'ai_openrouter' => 'OpenRouter',
+    'ai_openrouter_desc' => 'Multi-provider gateway',
     'ai_api_key' => 'API Key',
     'ai_api_key_hint' => 'Get this from the provider\'s dashboard',
     'ai_model' => 'Model',
     'ai_test_success' => 'AI provider connection successful!',
     'ai_test_fail' => 'AI provider test failed',
-    'ai_fallback' => 'Fallback Providers',
+    'ai_fallback' => 'Fallback',
+    'ai_optional' => 'Optional',
+    'ai_recommended' => 'Recommended',
     'ai_fallback_hint' => 'Used when the primary provider is unavailable',
+    'ai_warnings' => 'Warnings',
+    'ai_groq_key_hint' => 'Get from <a href="https://console.groq.com" target="_blank" style="color: var(--primary-light);">console.groq.com</a>',
+    'ai_groq_model_hint' => 'Models are dynamically loaded from Groq API',
+    'ai_openai_key_hint' => 'Get from <a href="https://platform.openai.com" target="_blank" style="color: var(--primary-light);">platform.openai.com</a>',
+    'ai_anthropic_key_hint' => 'Get from <a href="https://console.anthropic.com" target="_blank" style="color: var(--primary-light);">console.anthropic.com</a>',
+    'ai_google_key_hint' => 'Get from <a href="https://aistudio.google.com" target="_blank" style="color: var(--primary-light);">aistudio.google.com</a>',
+    'ai_xai_key_hint' => 'Get from <a href="https://x.ai" target="_blank" style="color: var(--primary-light);">x.ai</a>',
+    'ai_openrouter_key_hint' => 'Get from <a href="https://openrouter.ai" target="_blank" style="color: var(--primary-light);">openrouter.ai</a>',
+    'ai_openrouter_note' => 'OpenRouter provides access to 100+ models from various providers through a single API.',
+    'error_ai_required' => 'At least one AI provider API key is required.',
 
     // Step 6: TON Blockchain
     'step_6_title' => 'TON Blockchain Integration',
@@ -155,18 +176,23 @@ return [
 
     // Step 8: Admin
     'step_8_title' => 'Admin Account Setup',
-    'step_8_desc' => 'Create your administrator account.',
+    'step_8_desc' => 'Create your administrator account and complete installation.',
     'admin_tg_id' => 'Telegram User ID',
     'admin_tg_id_hint' => 'Your Telegram user ID (get from @userinfobot)',
     'admin_username' => 'Admin Username',
     'admin_email' => 'Email Address',
     'admin_email_hint' => 'For account recovery and notifications',
     'admin_password' => 'Admin Password',
-    'admin_password_hint' => 'Minimum 12 characters recommended',
+    'admin_password_hint' => 'Minimum 8 characters, 12+ recommended',
     'admin_password_confirm' => 'Confirm Password',
     'admin_created' => 'Admin account created successfully!',
     'admin_locale' => 'Default Language',
     'admin_timezone' => 'Timezone',
+
+    // Diagnostics
+    'diag_ready' => 'Ready to install',
+    'diag_issues' => 'Issues detected',
+    'diag_fix_issues' => 'Please fix the issues above before completing installation.',
 
     // Step 9: Complete
     'step_9_title' => 'Installation Complete!',
@@ -188,9 +214,10 @@ return [
     'error_password_weak' => 'Password must be at least 8 characters.',
     'error_db_connection' => 'Could not connect to database.',
     'error_db_create' => 'Could not create database.',
-    'error_file_write' => 'Could not write configuration file.',
+    'error_file_write' => 'Could not write configuration file. Please check permissions.',
     'error_telegram_invalid' => 'Invalid Telegram bot token.',
     'error_ai_invalid' => 'Invalid AI provider API key.',
+    'error_csrf' => 'Security token expired. Please try again.',
 
     // Success
     'success_db_connected' => 'Database connected successfully.',

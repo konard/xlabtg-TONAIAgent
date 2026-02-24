@@ -9,6 +9,7 @@ $session = $sec['session'] ?? [];
 ?>
 
 <form method="POST">
+    <?= csrfField() ?>
     <div class="form-group">
         <label for="app_secret"><?= __('sec_app_secret') ?></label>
         <input type="text" class="form-control" id="app_secret" name="app_secret"

@@ -1,0 +1,28 @@
+apiVersion: v2
+name: tonaiagent
+description: TON AI Agent - Enterprise Helm Chart for Kubernetes deployment
+type: application
+version: 1.0.0
+appVersion: "2.8.0"
+kubeVersion: ">=1.25.0-0"
+
+keywords:
+  - ton
+  - ai
+  - blockchain
+  - trading
+  - telegram
+  - autonomous-agents
+
+home: https://github.com/xlabtg/TONAIAgent
+sources:
+  - https://github.com/xlabtg/TONAIAgent
+
+maintainers:
+  - name: TON AI Agent Team
+    email: team@tonaiagent.io
+    url: https://tonaiagent.io
+
+annotations:
+  artifacthub.io/license: MIT
+  artifacthub.io/category: integration-delivery

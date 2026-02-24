@@ -1,0 +1,342 @@
+# TON AI Agent - Helm Chart Values
+#
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# ============================================
+# Global Settings
+# ============================================
+global:
+  # Image pull secrets for private registries
+  imagePullSecrets: []
+  # Storage class for persistent volumes
+  storageClass: ""
+
+# ============================================
+# Application Configuration
+# ============================================
+app:
+  # Number of replicas
+  replicaCount: 2
+
+  image:
+    repository: tonaiagent/app
+    tag: "latest"
+    pullPolicy: IfNotPresent
+
+  # Resource limits and requests
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 1024Mi
+    requests:
+      cpu: 250m
+      memory: 512Mi
+
+  # Pod annotations
+  podAnnotations: {}
+
+  # Pod labels
+  podLabels: {}
+
+  # Node selector
+  nodeSelector: {}
+
+  # Tolerations
+  tolerations: []
+
+  # Affinity rules
+  affinity: {}
+
+  # Security context
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 1001
+    fsGroup: 1001
+
+  # Container security context
+  containerSecurityContext:
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: true
+    capabilities:
+      drop:
+        - ALL
+
+  # Health checks
+  livenessProbe:
+    enabled: true
+    httpGet:
+      path: /health
+      port: http
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+    successThreshold: 1
+
+  readinessProbe:
+    enabled: true
+    httpGet:
+      path: /health
+      port: http
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+    successThreshold: 1
+
+  # Startup probe for slow-starting containers
+  startupProbe:
+    enabled: true
+    httpGet:
+      path: /health
+      port: http
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 30
+
+# ============================================
+# Worker Configuration
+# ============================================
+worker:
+  enabled: true
+  replicaCount: 2
+
+  image:
+    repository: tonaiagent/worker
+    tag: "latest"
+    pullPolicy: IfNotPresent
+
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 256Mi
+
+# ============================================
+# Service Configuration
+# ============================================
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 3000
+  annotations: {}
+
+# ============================================
+# Ingress Configuration
+# ============================================
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+    nginx.ingress.kubernetes.io/rate-limit: "100"
+    nginx.ingress.kubernetes.io/rate-limit-window: "1m"
+  hosts:
+    - host: tonaiagent.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: tonaiagent-tls
+      hosts:
+        - tonaiagent.example.com
+
+# ============================================
+# Autoscaling Configuration
+# ============================================
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 70
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+        - type: Percent
+          value: 10
+          periodSeconds: 60
+    scaleUp:
+      stabilizationWindowSeconds: 0
+      policies:
+        - type: Percent
+          value: 100
+          periodSeconds: 15
+        - type: Pods
+          value: 4
+          periodSeconds: 15
+      selectPolicy: Max
+
+# ============================================
+# Pod Disruption Budget
+# ============================================
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1
+  # maxUnavailable: 1  # Alternative to minAvailable
+
+# ============================================
+# Service Account
+# ============================================
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+# ============================================
+# Network Policy
+# ============================================
+networkPolicy:
+  enabled: true
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: ingress-nginx
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: tonaiagent
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: postgresql
+      ports:
+        - port: 5432
+          protocol: TCP
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: redis
+      ports:
+        - port: 6379
+          protocol: TCP
+    # Allow external API calls (Telegram, AI providers, TON)
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+            except:
+              - 10.0.0.0/8
+              - 172.16.0.0/12
+              - 192.168.0.0/16
+      ports:
+        - port: 443
+          protocol: TCP
+
+# ============================================
+# Environment Variables
+# ============================================
+env:
+  NODE_ENV: production
+  PORT: "3000"
+  TON_NETWORK: mainnet
+  LOG_LEVEL: info
+
+# ============================================
+# Secrets (reference existing secrets)
+# ============================================
+secrets:
+  # Create a new secret with these values
+  create: true
+  # Or use an existing secret
+  existingSecret: ""
+  # Secret keys
+  telegramBotToken: ""
+  groqApiKey: ""
+  anthropicApiKey: ""
+  openaiApiKey: ""
+  databaseUrl: ""
+  redisUrl: ""
+
+# ============================================
+# PostgreSQL (Bitnami subchart)
+# ============================================
+postgresql:
+  enabled: true
+  auth:
+    username: tonaiagent
+    password: ""  # Set via --set postgresql.auth.password
+    database: tonaiagent
+  primary:
+    persistence:
+      enabled: true
+      size: 20Gi
+    resources:
+      limits:
+        cpu: 1000m
+        memory: 1024Mi
+      requests:
+        cpu: 250m
+        memory: 512Mi
+  metrics:
+    enabled: true
+
+# ============================================
+# Redis (Bitnami subchart)
+# ============================================
+redis:
+  enabled: true
+  architecture: standalone
+  auth:
+    enabled: true
+    password: ""  # Set via --set redis.auth.password
+  master:
+    persistence:
+      enabled: true
+      size: 8Gi
+    resources:
+      limits:
+        cpu: 500m
+        memory: 512Mi
+      requests:
+        cpu: 100m
+        memory: 256Mi
+  metrics:
+    enabled: true
+
+# ============================================
+# Monitoring
+# ============================================
+monitoring:
+  enabled: true
+  serviceMonitor:
+    enabled: true
+    namespace: ""
+    interval: 30s
+    scrapeTimeout: 10s
+    labels: {}
+  prometheusRule:
+    enabled: true
+    namespace: ""
+    labels: {}
+    rules:
+      - alert: TONAIAgentDown
+        expr: up{job="tonaiagent"} == 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "TON AI Agent is down"
+          description: "TON AI Agent has been down for more than 5 minutes."
+      - alert: TONAIAgentHighCPU
+        expr: rate(container_cpu_usage_seconds_total{container="tonaiagent"}[5m]) > 0.8
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "TON AI Agent high CPU usage"
+          description: "CPU usage is above 80% for more than 10 minutes."
+
+# ============================================
+# Extra Configuration
+# ============================================
+extraEnv: []
+extraVolumes: []
+extraVolumeMounts: []

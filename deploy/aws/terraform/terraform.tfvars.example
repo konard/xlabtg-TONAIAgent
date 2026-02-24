@@ -1,0 +1,68 @@
+# TON AI Agent - Terraform Variables Example
+#
+# Copy this file to terraform.tfvars and fill in your values:
+#   cp terraform.tfvars.example terraform.tfvars
+#
+# IMPORTANT: Never commit terraform.tfvars to version control!
+
+# ============================================
+# General Settings
+# ============================================
+project_name = "tonaiagent"
+environment  = "production"
+aws_region   = "us-east-1"
+
+# ============================================
+# Networking
+# ============================================
+vpc_cidr = "10.0.0.0/16"
+
+# ============================================
+# ECS Configuration
+# ============================================
+container_port = 3000
+task_cpu       = 512    # 0.5 vCPU
+task_memory    = 1024   # 1 GB
+desired_count  = 2
+min_capacity   = 1
+max_capacity   = 10
+
+# ============================================
+# Database Configuration
+# ============================================
+db_instance_class        = "db.t3.micro"    # For production: db.r6g.large
+db_allocated_storage     = 20
+db_max_allocated_storage = 100
+db_name                  = "tonaiagent"
+db_username              = "tonaiagent"
+db_password              = "REPLACE_WITH_SECURE_PASSWORD"
+
+# ============================================
+# Cache Configuration
+# ============================================
+redis_node_type = "cache.t3.micro"   # For production: cache.r6g.large
+
+# ============================================
+# SSL/TLS Configuration
+# ============================================
+# Create ACM certificate first, then paste ARN here
+acm_certificate_arn = "arn:aws:acm:us-east-1:123456789012:certificate/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+
+# ============================================
+# Application Secrets
+# ============================================
+telegram_bot_token = "YOUR_TELEGRAM_BOT_TOKEN"
+groq_api_key       = "YOUR_GROQ_API_KEY"
+anthropic_api_key  = ""   # Optional
+openai_api_key     = ""   # Optional
+
+# ============================================
+# TON Configuration
+# ============================================
+ton_network      = "mainnet"
+ton_rpc_endpoint = ""   # Leave empty for default
+
+# ============================================
+# Monitoring
+# ============================================
+sns_alarm_topic_arn = ""   # Optional: SNS topic for alerts

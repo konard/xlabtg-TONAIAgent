@@ -1,0 +1,182 @@
+# TON AI Agent - Docker Compose Configuration
+#
+# Production-ready deployment with all services
+#
+# Usage:
+#   docker compose up -d              # Start all services
+#   docker compose logs -f            # View logs
+#   docker compose down               # Stop all services
+#   docker compose down -v            # Stop and remove volumes
+
+version: '3.9'
+
+services:
+  # ============================================
+  # Main Application
+  # ============================================
+  app:
+    build:
+      context: ../..
+      dockerfile: deploy/docker/Dockerfile
+    container_name: tonaiagent-app
+    restart: unless-stopped
+    ports:
+      - "${PORT:-3000}:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - DATABASE_URL=postgresql://${DB_USER:-tonaiagent}:${DB_PASSWORD:-secret}@postgres:5432/${DB_NAME:-tonaiagent}
+      - REDIS_URL=redis://redis:6379
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - TELEGRAM_MINI_APP_URL=${TELEGRAM_MINI_APP_URL}
+      - GROQ_API_KEY=${GROQ_API_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - TON_NETWORK=${TON_NETWORK:-mainnet}
+      - TON_RPC_ENDPOINT=${TON_RPC_ENDPOINT}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    networks:
+      - tonaiagent
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.tonaiagent.rule=Host(`${DOMAIN:-localhost}`)"
+      - "traefik.http.routers.tonaiagent.entrypoints=websecure"
+      - "traefik.http.routers.tonaiagent.tls.certresolver=letsencrypt"
+      - "traefik.http.services.tonaiagent.loadbalancer.server.port=3000"
+
+  # ============================================
+  # Background Worker
+  # ============================================
+  worker:
+    build:
+      context: ../..
+      dockerfile: deploy/docker/Dockerfile.worker
+    container_name: tonaiagent-worker
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - WORKER_MODE=true
+      - DATABASE_URL=postgresql://${DB_USER:-tonaiagent}:${DB_PASSWORD:-secret}@postgres:5432/${DB_NAME:-tonaiagent}
+      - REDIS_URL=redis://redis:6379
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - GROQ_API_KEY=${GROQ_API_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - TON_NETWORK=${TON_NETWORK:-mainnet}
+      - TON_RPC_ENDPOINT=${TON_RPC_ENDPOINT}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - tonaiagent
+    deploy:
+      replicas: ${WORKER_REPLICAS:-2}
+
+  # ============================================
+  # PostgreSQL Database
+  # ============================================
+  postgres:
+    image: postgres:16-alpine
+    container_name: tonaiagent-postgres
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=${DB_USER:-tonaiagent}
+      - POSTGRES_PASSWORD=${DB_PASSWORD:-secret}
+      - POSTGRES_DB=${DB_NAME:-tonaiagent}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-tonaiagent}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - tonaiagent
+    ports:
+      - "127.0.0.1:5432:5432"
+
+  # ============================================
+  # Redis Cache
+  # ============================================
+  redis:
+    image: redis:7-alpine
+    container_name: tonaiagent-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - tonaiagent
+    ports:
+      - "127.0.0.1:6379:6379"
+
+  # ============================================
+  # Reverse Proxy (Traefik)
+  # ============================================
+  traefik:
+    image: traefik:v3.0
+    container_name: tonaiagent-traefik
+    restart: unless-stopped
+    command:
+      - "--api.dashboard=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
+      - "--certificatesresolvers.letsencrypt.acme.tlschallenge=true"
+      - "--certificatesresolvers.letsencrypt.acme.email=${ACME_EMAIL:-admin@example.com}"
+      - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - traefik_letsencrypt:/letsencrypt
+    networks:
+      - tonaiagent
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.dashboard.rule=Host(`traefik.${DOMAIN:-localhost}`)"
+      - "traefik.http.routers.dashboard.service=api@internal"
+      - "traefik.http.routers.dashboard.middlewares=auth"
+      - "traefik.http.middlewares.auth.basicauth.users=${TRAEFIK_AUTH:-admin:$$apr1$$xyz$$hash}"
+    profiles:
+      - production
+
+# ============================================
+# Networks
+# ============================================
+networks:
+  tonaiagent:
+    driver: bridge
+
+# ============================================
+# Volumes
+# ============================================
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  traefik_letsencrypt:
+    driver: local

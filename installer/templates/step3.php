@@ -21,6 +21,7 @@ $tg = $stepData['telegram'] ?? [];
 </div>
 
 <form method="POST" autocomplete="off">
+    <?= csrfField() ?>
     <div class="form-group">
         <label for="bot_token"><?= __('tg_token') ?> <span class="required">*</span></label>
         <input type="text" class="form-control" id="bot_token" name="bot_token"

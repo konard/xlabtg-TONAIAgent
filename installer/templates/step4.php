@@ -19,6 +19,7 @@ $miniapp = $stepData['miniapp'] ?? [];
 </div>
 
 <form method="POST">
+    <?= csrfField() ?>
     <div class="form-group">
         <label for="miniapp_url"><?= __('miniapp_url') ?> <span class="required">*</span></label>
         <input type="url" class="form-control" id="miniapp_url" name="miniapp_url"

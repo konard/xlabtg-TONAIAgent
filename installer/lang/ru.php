@@ -1,6 +1,7 @@
 <?php
 /**
  * TON AI Agent Installer - Russian Translations
+ * Version 2.0.0 - Production-Grade Edition
  */
 
 return [
@@ -14,6 +15,7 @@ return [
     'save' => 'Сохранить',
     'test' => 'Проверить подключение',
     'footer_text' => 'TON AI Agent - AI-платформа для трейдинга',
+    'complete_install' => 'Завершить установку',
 
     // Step Names
     'step_requirements' => 'Требования',
@@ -46,7 +48,7 @@ return [
     'req_ext_json' => 'Расширение JSON',
     'req_ext_json_detail' => 'Требуется для API-ответов',
     'req_writable' => 'Доступные для записи директории',
-    'req_writable_detail' => 'Директория app должна быть доступна для записи',
+    'req_writable_detail' => 'должна быть доступна для записи',
     'req_pass' => 'Пройдено',
     'req_fail' => 'Ошибка',
     'req_warn' => 'Предупреждение',
@@ -107,20 +109,39 @@ return [
     // Step 5: AI Providers
     'step_5_title' => 'Настройка AI провайдеров',
     'step_5_desc' => 'Настройте AI провайдеров для интеллектуальных операций агентов.',
+    'ai_setup_intro' => 'Настройте хотя бы одного AI провайдера. Groq рекомендуется для максимальной скорости.',
     'ai_default' => 'Основной провайдер',
     'ai_groq' => 'Groq',
     'ai_groq_desc' => 'Самый быстрый, рекомендуется',
     'ai_openai' => 'OpenAI',
-    'ai_openai_desc' => 'Модели GPT-4 и GPT-3.5',
+    'ai_openai_desc' => 'Модели GPT-4o и GPT-4',
     'ai_anthropic' => 'Anthropic',
-    'ai_anthropic_desc' => 'Модели Claude',
+    'ai_anthropic_desc' => 'Модели Claude 3.5 и Claude 3',
+    'ai_google' => 'Google AI',
+    'ai_google_desc' => 'Модели Gemini 1.5 и 2.0',
+    'ai_xai' => 'xAI',
+    'ai_xai_desc' => 'Модели Grok 2',
+    'ai_openrouter' => 'OpenRouter',
+    'ai_openrouter_desc' => 'Мульти-провайдер шлюз',
     'ai_api_key' => 'API ключ',
     'ai_api_key_hint' => 'Получите в панели управления провайдера',
     'ai_model' => 'Модель',
     'ai_test_success' => 'Подключение к AI провайдеру успешно!',
     'ai_test_fail' => 'Ошибка тестирования AI провайдера',
-    'ai_fallback' => 'Резервные провайдеры',
+    'ai_fallback' => 'Резервный',
+    'ai_optional' => 'Опционально',
+    'ai_recommended' => 'Рекомендуется',
     'ai_fallback_hint' => 'Используются при недоступности основного провайдера',
+    'ai_warnings' => 'Предупреждения',
+    'ai_groq_key_hint' => 'Получить на <a href="https://console.groq.com" target="_blank" style="color: var(--primary-light);">console.groq.com</a>',
+    'ai_groq_model_hint' => 'Модели загружаются динамически из Groq API',
+    'ai_openai_key_hint' => 'Получить на <a href="https://platform.openai.com" target="_blank" style="color: var(--primary-light);">platform.openai.com</a>',
+    'ai_anthropic_key_hint' => 'Получить на <a href="https://console.anthropic.com" target="_blank" style="color: var(--primary-light);">console.anthropic.com</a>',
+    'ai_google_key_hint' => 'Получить на <a href="https://aistudio.google.com" target="_blank" style="color: var(--primary-light);">aistudio.google.com</a>',
+    'ai_xai_key_hint' => 'Получить на <a href="https://x.ai" target="_blank" style="color: var(--primary-light);">x.ai</a>',
+    'ai_openrouter_key_hint' => 'Получить на <a href="https://openrouter.ai" target="_blank" style="color: var(--primary-light);">openrouter.ai</a>',
+    'ai_openrouter_note' => 'OpenRouter предоставляет доступ к 100+ моделям от различных провайдеров через единый API.',
+    'error_ai_required' => 'Требуется хотя бы один API ключ AI провайдера.',
 
     // Step 6: TON Blockchain
     'step_6_title' => 'Интеграция с блокчейном TON',
@@ -155,18 +176,23 @@ return [
 
     // Step 8: Admin
     'step_8_title' => 'Создание учетной записи администратора',
-    'step_8_desc' => 'Создайте учетную запись администратора.',
+    'step_8_desc' => 'Создайте учетную запись администратора и завершите установку.',
     'admin_tg_id' => 'Telegram User ID',
     'admin_tg_id_hint' => 'Ваш Telegram ID (получите у @userinfobot)',
     'admin_username' => 'Имя пользователя',
     'admin_email' => 'Email адрес',
     'admin_email_hint' => 'Для восстановления и уведомлений',
     'admin_password' => 'Пароль администратора',
-    'admin_password_hint' => 'Рекомендуется минимум 12 символов',
+    'admin_password_hint' => 'Минимум 8 символов, рекомендуется 12+',
     'admin_password_confirm' => 'Подтвердите пароль',
     'admin_created' => 'Учетная запись администратора создана!',
     'admin_locale' => 'Язык по умолчанию',
     'admin_timezone' => 'Часовой пояс',
+
+    // Diagnostics
+    'diag_ready' => 'Готово к установке',
+    'diag_issues' => 'Обнаружены проблемы',
+    'diag_fix_issues' => 'Пожалуйста, исправьте проблемы выше перед завершением установки.',
 
     // Step 9: Complete
     'step_9_title' => 'Установка завершена!',
@@ -188,9 +214,10 @@ return [
     'error_password_weak' => 'Пароль должен содержать минимум 8 символов.',
     'error_db_connection' => 'Не удалось подключиться к базе данных.',
     'error_db_create' => 'Не удалось создать базу данных.',
-    'error_file_write' => 'Не удалось записать файл конфигурации.',
+    'error_file_write' => 'Не удалось записать файл конфигурации. Проверьте права доступа.',
     'error_telegram_invalid' => 'Неверный токен Telegram бота.',
     'error_ai_invalid' => 'Неверный API ключ AI провайдера.',
+    'error_csrf' => 'Токен безопасности истек. Попробуйте снова.',
 
     // Success
     'success_db_connected' => 'База данных успешно подключена.',

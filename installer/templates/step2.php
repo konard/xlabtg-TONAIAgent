@@ -7,6 +7,7 @@ $db = $stepData['db'] ?? [];
 ?>
 
 <form method="POST" autocomplete="off">
+    <?= csrfField() ?>
     <div class="form-row">
         <div class="form-group">
             <label for="db_host"><?= __('db_host') ?> <span class="required">*</span></label>

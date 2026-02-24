@@ -255,6 +255,158 @@ CREATE TABLE IF NOT EXISTS `tonai_sessions` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
+-- Telegram Bots (Multi-Bot Support for Enterprise)
+-- --------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `tonai_telegram_bots` (
+    `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `bot_id` BIGINT UNSIGNED NOT NULL COMMENT 'Telegram bot user ID',
+    `bot_username` VARCHAR(255) NOT NULL,
+    `bot_token_hash` VARCHAR(255) NOT NULL COMMENT 'Hashed token for security',
+    `bot_token_encrypted` TEXT NOT NULL COMMENT 'Encrypted token',
+    `display_name` VARCHAR(255) NULL,
+    `description` TEXT NULL,
+    `owner_id` BIGINT UNSIGNED NULL COMMENT 'User who owns this bot',
+    `organization_id` BIGINT UNSIGNED NULL COMMENT 'For enterprise multi-tenant',
+    `webhook_url` VARCHAR(512) NULL,
+    `webhook_secret_hash` VARCHAR(255) NULL,
+    `mini_app_url` VARCHAR(512) NULL,
+    `is_active` TINYINT(1) DEFAULT 1,
+    `is_primary` TINYINT(1) DEFAULT 0 COMMENT 'Primary bot for this org',
+    `features` JSON NULL COMMENT 'Enabled features for this bot',
+    `settings` JSON NULL COMMENT 'Bot-specific settings',
+    `commands_version` VARCHAR(32) NULL COMMENT 'Track command updates',
+    `last_health_check` DATETIME NULL,
+    `health_status` ENUM('healthy', 'degraded', 'unhealthy', 'unknown') DEFAULT 'unknown',
+    `health_details` JSON NULL,
+    `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `idx_bot_id` (`bot_id`),
+    UNIQUE KEY `idx_bot_username` (`bot_username`),
+    KEY `idx_owner_id` (`owner_id`),
+    KEY `idx_organization_id` (`organization_id`),
+    KEY `idx_is_active` (`is_active`),
+    KEY `idx_health_status` (`health_status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+-- Telegram Auth Nonces (Replay Protection)
+-- --------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `tonai_telegram_nonces` (
+    `nonce_hash` VARCHAR(64) NOT NULL,
+    `expires_at` INT UNSIGNED NOT NULL,
+    PRIMARY KEY (`nonce_hash`),
+    KEY `idx_expires_at` (`expires_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+-- Telegram Webhook Events Log
+-- --------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `tonai_telegram_webhook_events` (
+    `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `bot_id` BIGINT UNSIGNED NOT NULL,
+    `update_id` BIGINT UNSIGNED NOT NULL,
+    `event_type` VARCHAR(64) NOT NULL COMMENT 'message, callback_query, etc.',
+    `chat_id` BIGINT NULL,
+    `user_id` BIGINT NULL,
+    `payload_hash` VARCHAR(64) NOT NULL COMMENT 'For deduplication',
+    `processed` TINYINT(1) DEFAULT 0,
+    `processed_at` DATETIME NULL,
+    `error_message` TEXT NULL,
+    `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `idx_bot_update` (`bot_id`, `update_id`),
+    KEY `idx_event_type` (`event_type`),
+    KEY `idx_chat_id` (`chat_id`),
+    KEY `idx_user_id` (`user_id`),
+    KEY `idx_processed` (`processed`),
+    KEY `idx_created_at` (`created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+-- Bot Health Check History
+-- --------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `tonai_bot_health_checks` (
+    `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `bot_id` BIGINT UNSIGNED NOT NULL,
+    `check_type` VARCHAR(64) NOT NULL COMMENT 'api, webhook, commands, etc.',
+    `status` ENUM('pass', 'fail', 'warn') NOT NULL,
+    `message` VARCHAR(512) NULL,
+    `latency_ms` INT UNSIGNED NULL,
+    `details` JSON NULL,
+    `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    KEY `idx_bot_id` (`bot_id`),
+    KEY `idx_check_type` (`check_type`),
+    KEY `idx_status` (`status`),
+    KEY `idx_created_at` (`created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+-- Organizations (Enterprise Multi-Tenant)
+-- --------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `tonai_organizations` (
+    `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `name` VARCHAR(255) NOT NULL,
+    `slug` VARCHAR(128) NOT NULL,
+    `owner_id` BIGINT UNSIGNED NOT NULL,
+    `plan` ENUM('starter', 'professional', 'enterprise') DEFAULT 'starter',
+    `max_bots` INT UNSIGNED DEFAULT 1,
+    `max_users` INT UNSIGNED DEFAULT 5,
+    `settings` JSON NULL,
+    `is_active` TINYINT(1) DEFAULT 1,
+    `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `idx_slug` (`slug`),
+    KEY `idx_owner_id` (`owner_id`),
+    KEY `idx_plan` (`plan`),
+    KEY `idx_is_active` (`is_active`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+-- Organization Members
+-- --------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `tonai_organization_members` (
+    `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `organization_id` BIGINT UNSIGNED NOT NULL,
+    `user_id` BIGINT UNSIGNED NOT NULL,
+    `role` ENUM('owner', 'admin', 'operator', 'viewer') DEFAULT 'viewer',
+    `permissions` JSON NULL,
+    `invited_by` BIGINT UNSIGNED NULL,
+    `accepted_at` DATETIME NULL,
+    `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `idx_org_user` (`organization_id`, `user_id`),
+    KEY `idx_user_id` (`user_id`),
+    KEY `idx_role` (`role`),
+    CONSTRAINT `fk_org_members_org` FOREIGN KEY (`organization_id`) REFERENCES `tonai_organizations` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_org_members_user` FOREIGN KEY (`user_id`) REFERENCES `tonai_users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+-- Bot Activity Monitoring (Enterprise)
+-- --------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `tonai_bot_activity` (
+    `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `bot_id` BIGINT UNSIGNED NOT NULL,
+    `date` DATE NOT NULL,
+    `hour` TINYINT UNSIGNED NULL COMMENT 'For hourly stats',
+    `messages_received` INT UNSIGNED DEFAULT 0,
+    `messages_sent` INT UNSIGNED DEFAULT 0,
+    `callback_queries` INT UNSIGNED DEFAULT 0,
+    `inline_queries` INT UNSIGNED DEFAULT 0,
+    `unique_users` INT UNSIGNED DEFAULT 0,
+    `mini_app_opens` INT UNSIGNED DEFAULT 0,
+    `errors` INT UNSIGNED DEFAULT 0,
+    `avg_response_time_ms` INT UNSIGNED NULL,
+    `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `idx_bot_date_hour` (`bot_id`, `date`, `hour`),
+    KEY `idx_date` (`date`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
 -- Insert default strategies
 -- --------------------------------------------------------
 INSERT INTO `tonai_strategies` (`id`, `name`, `description`, `category`, `risk_level`, `is_template`, `min_investment`, `performance_fee`) VALUES

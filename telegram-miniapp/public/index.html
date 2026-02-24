@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+  <!-- Primary Meta Tags -->
+  <title>TON AI Agent - Telegram Mini App</title>
+  <meta name="description" content="Deploy AI agents for automated trading on TON blockchain">
+
+  <!-- Telegram Web App Script -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="css/miniapp.css">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+</head>
+<body>
+  <div id="app">
+    <!-- Loading State -->
+    <div id="loading" class="loading-screen">
+      <div class="loader"></div>
+      <p>Loading TON AI Agent...</p>
+    </div>
+
+    <!-- Main App Container -->
+    <main id="main-content" class="hidden">
+      <!-- Header -->
+      <header class="app-header">
+        <div class="user-info">
+          <div class="avatar" id="user-avatar">
+            <span id="avatar-initials">?</span>
+          </div>
+          <div class="user-details">
+            <span class="user-name" id="user-name">Welcome</span>
+            <span class="user-balance" id="user-balance">Connect Wallet</span>
+          </div>
+        </div>
+        <button class="btn-icon" id="settings-btn" aria-label="Settings">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+          </svg>
+        </button>
+      </header>
+
+      <!-- Portfolio Overview -->
+      <section class="portfolio-section">
+        <div class="portfolio-card">
+          <div class="portfolio-header">
+            <h2>Portfolio Value</h2>
+            <span class="portfolio-change positive" id="portfolio-change">+0.00%</span>
+          </div>
+          <div class="portfolio-value">
+            <span class="currency">$</span>
+            <span id="portfolio-amount">0.00</span>
+          </div>
+          <div class="portfolio-stats">
+            <div class="stat">
+              <span class="stat-label">Active Agents</span>
+              <span class="stat-value" id="active-agents">0</span>
+            </div>
+            <div class="stat">
+              <span class="stat-label">Total Yield</span>
+              <span class="stat-value" id="total-yield">0.00%</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Quick Actions -->
+      <section class="quick-actions">
+        <button class="action-btn primary" id="create-agent-btn">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="16"></line>
+            <line x1="8" y1="12" x2="16" y2="12"></line>
+          </svg>
+          <span>Create Agent</span>
+        </button>
+        <button class="action-btn" id="marketplace-btn">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <path d="M16 10a4 4 0 0 1-8 0"></path>
+          </svg>
+          <span>Marketplace</span>
+        </button>
+        <button class="action-btn" id="rankings-btn">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 20V10"></path>
+            <path d="M18 20V4"></path>
+            <path d="M6 20v-4"></path>
+          </svg>
+          <span>Rankings</span>
+        </button>
+      </section>
+
+      <!-- Agent List / Create Agent Flow -->
+      <section id="agents-section" class="agents-section">
+        <div class="section-header">
+          <h2>My Agents</h2>
+          <span class="badge" id="agents-count">0</span>
+        </div>
+
+        <!-- Empty State -->
+        <div id="empty-state" class="empty-state">
+          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="12" cy="12" r="10"></circle>
+            <path d="M8 14s1.5 2 4 2 4-2 4-2"></path>
+            <line x1="9" y1="9" x2="9.01" y2="9"></line>
+            <line x1="15" y1="9" x2="15.01" y2="9"></line>
+          </svg>
+          <h3>No Agents Yet</h3>
+          <p>Create your first AI agent to start earning yield automatically.</p>
+          <button class="btn primary" id="empty-create-btn">Create Your First Agent</button>
+        </div>
+
+        <!-- Agent Cards Container -->
+        <div id="agents-list" class="agents-list hidden"></div>
+      </section>
+
+      <!-- Create Agent Modal -->
+      <div id="create-agent-modal" class="modal hidden">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h2>Create Agent</h2>
+            <button class="btn-icon" id="close-modal-btn" aria-label="Close">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+          </div>
+
+          <!-- Step 1: Choose Goal -->
+          <div id="step-1" class="wizard-step">
+            <h3>Choose Your Goal</h3>
+            <div class="goal-options">
+              <button class="goal-option" data-goal="passive-income">
+                <span class="goal-icon">&#128176;</span>
+                <span class="goal-title">Passive Income</span>
+                <span class="goal-desc">Earn yield automatically</span>
+              </button>
+              <button class="goal-option" data-goal="trading">
+                <span class="goal-icon">&#128200;</span>
+                <span class="goal-title">Trading</span>
+                <span class="goal-desc">AI-powered trading</span>
+              </button>
+              <button class="goal-option" data-goal="dca">
+                <span class="goal-icon">&#128197;</span>
+                <span class="goal-title">DCA</span>
+                <span class="goal-desc">Dollar-cost averaging</span>
+              </button>
+              <button class="goal-option" data-goal="liquidity">
+                <span class="goal-icon">&#128167;</span>
+                <span class="goal-title">Liquidity</span>
+                <span class="goal-desc">Provide liquidity</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Step 2: Select Strategy -->
+          <div id="step-2" class="wizard-step hidden">
+            <h3>Select Strategy</h3>
+            <div id="strategy-options" class="strategy-options"></div>
+            <div class="wizard-nav">
+              <button class="btn secondary" id="back-to-step-1">Back</button>
+            </div>
+          </div>
+
+          <!-- Step 3: Fund & Deploy -->
+          <div id="step-3" class="wizard-step hidden">
+            <h3>Fund Your Agent</h3>
+            <div class="fund-form">
+              <div class="form-group">
+                <label for="fund-amount">Amount (TON)</label>
+                <input type="number" id="fund-amount" min="1" step="0.1" value="10" placeholder="Enter amount">
+              </div>
+              <div class="strategy-summary" id="strategy-summary"></div>
+              <div class="risk-warning">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                  <line x1="12" y1="9" x2="12" y2="13"></line>
+                  <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                </svg>
+                <span>Trading involves risk. Only invest what you can afford to lose.</span>
+              </div>
+            </div>
+            <div class="wizard-nav">
+              <button class="btn secondary" id="back-to-step-2">Back</button>
+              <button class="btn primary" id="deploy-agent-btn">Deploy Agent</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Strategy Marketplace Section -->
+      <section id="marketplace-section" class="marketplace-section hidden">
+        <div class="section-header">
+          <button class="btn-icon back-btn" id="marketplace-back">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+          </button>
+          <h2>Strategy Marketplace</h2>
+        </div>
+
+        <!-- Filters -->
+        <div class="filters">
+          <select id="category-filter" class="filter-select">
+            <option value="all">All Categories</option>
+            <option value="yield">Yield Farming</option>
+            <option value="trading">Trading</option>
+            <option value="dca">DCA</option>
+            <option value="liquidity">Liquidity</option>
+            <option value="arbitrage">Arbitrage</option>
+          </select>
+          <select id="risk-filter" class="filter-select">
+            <option value="all">All Risk Levels</option>
+            <option value="low">Low Risk</option>
+            <option value="medium">Medium Risk</option>
+            <option value="high">High Risk</option>
+          </select>
+        </div>
+
+        <!-- Strategy Cards -->
+        <div id="marketplace-list" class="marketplace-list"></div>
+      </section>
+
+      <!-- Rankings Section -->
+      <section id="rankings-section" class="rankings-section hidden">
+        <div class="section-header">
+          <button class="btn-icon back-btn" id="rankings-back">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+          </button>
+          <h2>Agent Rankings</h2>
+        </div>
+
+        <!-- Ranking Tabs -->
+        <div class="ranking-tabs">
+          <button class="tab-btn active" data-tab="performance">Performance</button>
+          <button class="tab-btn" data-tab="stability">Stability</button>
+          <button class="tab-btn" data-tab="reputation">Reputation</button>
+        </div>
+
+        <!-- Rankings List -->
+        <div id="rankings-list" class="rankings-list"></div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/telegram-webapp.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

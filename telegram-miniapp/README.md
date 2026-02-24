@@ -225,7 +225,7 @@ const startParam = window.Telegram.WebApp.initDataUnsafe.start_param;
 ## Support
 
 - GitHub Issues: https://github.com/xlabtg/TONAIAgent/issues
-- Telegram: https://t.me/tonaiagent
+- Telegram: https://t.me/xlab_tg
 
 ## License
 

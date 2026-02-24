@@ -43,6 +43,7 @@ $isHttps = $tg['is_https'] ?? false;
 <?php endif; ?>
 
 <form method="POST" id="telegram-form" autocomplete="off">
+    <?= csrfField() ?>
     <!-- Bot Token Input -->
     <div class="form-group">
         <label for="bot_token"><?= __('tg_token') ?> <span class="required">*</span></label>

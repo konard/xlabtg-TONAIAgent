@@ -7,6 +7,7 @@ $ton = $stepData['ton'] ?? [];
 ?>
 
 <form method="POST">
+    <?= csrfField() ?>
     <div class="form-group">
         <label><?= __('ton_network') ?></label>
         <div class="provider-cards">

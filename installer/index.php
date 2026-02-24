@@ -2,14 +2,18 @@
 /**
  * TON AI Agent - Professional One-Click Installer
  *
- * This installer helps you set up the complete TON AI Agent platform
- * on a shared hosting environment (PHP 8+, MySQL, HTTPS).
+ * Enterprise-grade installer with:
+ * - Comprehensive error handling and logging
+ * - CSRF protection
+ * - Installation recovery
+ * - Pre-installation diagnostics
+ * - Dynamic AI model discovery
  *
  * Installation time: < 10 minutes
  *
  * IMPORTANT: Delete the entire /installer directory after successful installation!
  *
- * @version 1.0.0
+ * @version 2.0.0
  * @license MIT
  */
 
@@ -18,19 +22,107 @@ header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
 header('Pragma: no-cache');
 header('Expires: Thu, 01 Jan 1970 00:00:00 GMT');
 
-// Error reporting for installation
+// Error reporting - log all errors but don't display
 error_reporting(E_ALL);
 ini_set('display_errors', '0');
 ini_set('log_errors', '1');
 
-// Session configuration
+// Define installer root and app root
+define('INSTALLER_ROOT', __DIR__);
+define('APP_ROOT', dirname(__DIR__));
+
+// Create logs directory if needed
+$logsDir = INSTALLER_ROOT . '/logs';
+if (!is_dir($logsDir)) {
+    @mkdir($logsDir, 0755, true);
+}
+
+// Custom error handler for logging
+set_error_handler(function($severity, $message, $file, $line) {
+    installerLog("PHP Error [$severity]: $message in $file:$line", 'error');
+    return false; // Let PHP handle it too
+});
+
+// Exception handler
+set_exception_handler(function($e) {
+    installerLog("Uncaught Exception: " . $e->getMessage() . "\n" . $e->getTraceAsString(), 'error');
+    $_SESSION['installer_error'] = 'An unexpected error occurred. Please check the logs.';
+});
+
+// Shutdown handler for fatal errors
+register_shutdown_function(function() {
+    $error = error_get_last();
+    if ($error && in_array($error['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR])) {
+        installerLog("Fatal Error: {$error['message']} in {$error['file']}:{$error['line']}", 'error');
+    }
+});
+
+/**
+ * Log message to installer log file
+ */
+function installerLog(string $message, string $level = 'info'): void {
+    $logsDir = INSTALLER_ROOT . '/logs';
+    $logFile = $logsDir . '/install.log';
+
+    if (!is_dir($logsDir)) {
+        @mkdir($logsDir, 0755, true);
+    }
+
+    $timestamp = date('Y-m-d H:i:s');
+    $logEntry = "[$timestamp] [$level] $message\n";
+
+    @file_put_contents($logFile, $logEntry, FILE_APPEND | LOCK_EX);
+}
+
+// Session configuration with security settings
 if (session_status() === PHP_SESSION_NONE) {
+    // Configure secure session settings
+    $isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+        || (!empty($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https')
+        || (!empty($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] == 443);
+
+    session_set_cookie_params([
+        'lifetime' => 7200,
+        'path' => '/',
+        'secure' => $isHttps,
+        'httponly' => true,
+        'samesite' => 'Strict'
+    ]);
+
     session_start();
 }
 
-// Define installer root
-define('INSTALLER_ROOT', __DIR__);
-define('APP_ROOT', dirname(__DIR__));
+// Generate CSRF token if not exists
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
+/**
+ * Verify CSRF token
+ */
+function verifyCsrfToken(): bool {
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        return true;
+    }
+
+    $token = $_POST['_csrf_token'] ?? $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
+    return hash_equals($_SESSION['csrf_token'] ?? '', $token);
+}
+
+/**
+ * Get CSRF token input field
+ */
+function csrfField(): string {
+    return '<input type="hidden" name="_csrf_token" value="' . htmlspecialchars($_SESSION['csrf_token'] ?? '') . '">';
+}
+
+// Verify CSRF on POST requests
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && !verifyCsrfToken()) {
+    installerLog('CSRF token verification failed', 'warning');
+    $_SESSION['installer_error'] = 'Security token expired. Please try again.';
+    header('Location: ' . $_SERVER['REQUEST_URI']);
+    exit;
+}
 
 // Load language files
 $locale = $_GET['lang'] ?? $_SESSION['locale'] ?? 'en';
@@ -73,18 +165,46 @@ $steps = [
 // Get current step
 $currentStep = isset($_GET['step']) ? max(1, min(9, (int)$_GET['step'])) : 1;
 
+// Log step visits
+installerLog("Visiting step $currentStep");
+
 // Check if installation is already complete
 if (file_exists(APP_ROOT . '/.installed') && $currentStep !== 9) {
     header('Location: ?step=9');
     exit;
 }
 
+// Create required directories early to prevent issues
+$requiredDirs = [
+    APP_ROOT . '/telegram-miniapp',
+    APP_ROOT . '/telegram-miniapp/app',
+    APP_ROOT . '/telegram-miniapp/logs',
+    APP_ROOT . '/telegram-miniapp/cache',
+    APP_ROOT . '/telegram-miniapp/storage',
+    INSTALLER_ROOT . '/logs',
+];
+
+foreach ($requiredDirs as $dir) {
+    if (!is_dir($dir)) {
+        if (!@mkdir($dir, 0755, true)) {
+            installerLog("Failed to create directory: $dir", 'warning');
+        } else {
+            installerLog("Created directory: $dir");
+        }
+    }
+}
+
 // Load step handler
 $stepFile = INSTALLER_ROOT . "/steps/step{$currentStep}.php";
 $stepData = ['error' => null, 'success' => null, 'data' => []];
 
-if (file_exists($stepFile)) {
-    require $stepFile;
+try {
+    if (file_exists($stepFile)) {
+        require $stepFile;
+    }
+} catch (Exception $e) {
+    installerLog("Error in step $currentStep: " . $e->getMessage(), 'error');
+    $stepData['error'] = 'An error occurred. Please try again or check the logs.';
 }
 
 // Get messages from session
@@ -721,6 +841,83 @@ unset($_SESSION['installer_error'], $_SESSION['installer_success']);
         .provider-card p {
             font-size: 12px;
             color: var(--text-muted);
+        }
+
+        /* Diagnostics Panel */
+        .diagnostics-panel {
+            background: var(--bg-input);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+
+        .diagnostics-panel h4 {
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .diagnostics-panel .status-icon {
+            width: 16px;
+            height: 16px;
+        }
+
+        .diagnostics-panel.checking {
+            border: 1px solid var(--primary);
+        }
+
+        .diagnostics-panel.success {
+            border: 1px solid var(--success);
+        }
+
+        .diagnostics-panel.error {
+            border: 1px solid var(--error);
+        }
+
+        /* Checkbox styling */
+        .form-check {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .form-check input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--primary);
+        }
+
+        .form-check label {
+            margin: 0;
+            cursor: pointer;
+        }
+
+        /* Model selector with badges */
+        .model-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-left: 8px;
+        }
+
+        .model-badge.fast {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--success);
+        }
+
+        .model-badge.smart {
+            background: rgba(0, 136, 204, 0.2);
+            color: var(--primary-light);
+        }
+
+        .model-badge.new {
+            background: rgba(245, 158, 11, 0.2);
+            color: var(--warning);
         }
     </style>
 </head>

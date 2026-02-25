@@ -2,9 +2,8 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "version": 2,
   "name": "ton-ai-agent",
-  "framework": "nextjs",
   "buildCommand": "npm run build",
-  "outputDirectory": ".next",
+  "outputDirectory": "dist",
   "regions": ["iad1", "fra1", "sin1"],
   "functions": {
     "api/**/*.ts": {

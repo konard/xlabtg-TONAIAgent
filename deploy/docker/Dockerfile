@@ -42,6 +42,9 @@ COPY . .
 # Build the application
 RUN npm run build
 
+# Ensure optional static directories exist so COPY won't fail in runner stage
+RUN mkdir -p /app/static-website /app/telegram-miniapp/public
+
 # ============================================
 # Stage 3: Production Runtime
 # ============================================
@@ -63,7 +66,7 @@ COPY --from=deps --chown=tonaiagent:tonaiagent /app/node_modules ./node_modules
 COPY --from=builder --chown=tonaiagent:tonaiagent /app/dist ./dist
 COPY --from=builder --chown=tonaiagent:tonaiagent /app/package.json ./
 
-# Copy static files if needed
+# Copy static files (directories are guaranteed to exist from builder stage)
 COPY --from=builder --chown=tonaiagent:tonaiagent /app/static-website ./static-website
 COPY --from=builder --chown=tonaiagent:tonaiagent /app/telegram-miniapp/public ./telegram-miniapp/public
 

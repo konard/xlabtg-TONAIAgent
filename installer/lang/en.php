@@ -75,22 +75,51 @@ return [
     'db_demo_data' => 'Insert demo data',
     'db_demo_data_hint' => 'Add sample strategies and data for testing',
 
-    // Step 3: Telegram Bot
-    'step_3_title' => 'Telegram Bot Configuration',
-    'step_3_desc' => 'Connect your Telegram bot for Mini App integration.',
+    // Step 3: Telegram Bot (Enhanced with Auto-Provisioning)
+    'step_3_title' => 'Telegram Bot Auto-Provisioning',
+    'step_3_desc' => 'Set up your Telegram bot with automatic configuration.',
     'tg_token' => 'Bot Token',
     'tg_token_hint' => 'Get this from @BotFather on Telegram',
     'tg_username' => 'Bot Username',
     'tg_username_hint' => 'Without @ symbol, auto-detected from token',
-    'tg_validate' => 'Validate Token',
+    'tg_validate' => 'Validate',
     'tg_valid' => 'Bot token validated successfully!',
+    'tg_validated' => 'Validated',
     'tg_invalid' => 'Invalid bot token. Please check and try again.',
+    'tg_invalid_format' => 'Invalid token format. Token should be like: 123456789:ABCdefGHI...',
+    'tg_validate_first' => 'Please validate the bot token first.',
     'tg_webhook' => 'Webhook URL',
     'tg_webhook_hint' => 'Auto-configured based on your domain',
     'tg_webhook_set' => 'Webhook configured successfully!',
-    'tg_commands_set' => 'Bot commands configured',
+    'tg_commands_set' => 'Bot commands configured.',
+    'tg_menu_button_set' => 'Menu button configured.',
     'tg_commands' => 'Bot Commands',
     'tg_commands_hint' => 'Commands will be registered automatically',
+
+    // BotFather Instructions
+    'tg_botfather_title' => 'How to create a Telegram bot',
+    'tg_botfather_step1' => 'Open',
+    'tg_botfather_step2' => 'Send /newbot and follow the instructions',
+    'tg_botfather_step3' => 'Copy the bot token provided',
+
+    // HTTPS Warning
+    'tg_https_warning' => 'HTTPS Not Detected',
+    'tg_https_warning_detail' => 'Telegram Mini Apps require HTTPS. Webhook and menu button features will be disabled until HTTPS is configured.',
+
+    // Auto-Provisioning Options
+    'tg_auto_provisioning' => 'Auto-Provisioning Options',
+    'tg_option_commands' => 'Set Bot Commands',
+    'tg_option_commands_desc' => 'Register /start, /dashboard, /agents, etc. with multi-language support',
+    'tg_option_webhook' => 'Configure Webhook',
+    'tg_option_webhook_desc' => 'Auto-configure webhook URL for receiving bot updates',
+    'tg_option_webhook_https_required' => 'Requires HTTPS (not available)',
+    'tg_option_menu_button' => 'Set Menu Button',
+    'tg_option_menu_button_desc' => 'Add "Open App" button to chat for quick Mini App access',
+    'tg_provision_continue' => 'Provision & Continue',
+
+    // Token Validation Suggestions
+    'tg_suggestion_format' => 'Token format: 123456789:ABCdefGHIjklMNOpqrsTUVwxyz',
+    'tg_suggestion_botfather' => 'Get a new token from @BotFather if this one is incorrect',
 
     // Step 4: Mini App
     'step_4_title' => 'Telegram Mini App Setup',
@@ -206,6 +235,18 @@ return [
     'complete_warning' => 'Security Warning: Please delete the /installer directory from your server immediately to prevent unauthorized access.',
     'complete_open_app' => 'Open Mini App',
     'complete_dashboard' => 'Open Dashboard',
+
+    // Health Check
+    'health_check_title' => 'Health Check Results',
+    'health_check_pass' => 'Pass',
+    'health_check_fail' => 'Fail',
+    'health_check_warn' => 'Warning',
+    'health_bot_api' => 'Bot API Connectivity',
+    'health_webhook' => 'Webhook Status',
+    'health_permissions' => 'Bot Permissions',
+    'health_ai' => 'AI Provider',
+    'health_ton' => 'TON RPC',
+    'health_database' => 'Database',
 
     // Errors
     'error_required' => 'This field is required.',

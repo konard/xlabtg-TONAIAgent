@@ -268,6 +268,9 @@ function generateConfigFile($db, $tg, $miniapp, $ai, $ton, $sec, $admin): string
     $rateWindow = $sec['rate_limit']['time_window'] ?? 60;
     $sessionLifetime = $sec['session']['lifetime'] ?? 7200;
 
+    // Database port needs to be pre-computed for HEREDOC
+    $dbPort = (int)($db['port'] ?? 3306);
+
     return <<<PHP
 <?php
 /**
@@ -297,7 +300,7 @@ return [
     'database' => [
         'driver' => 'mysql',
         'host' => '{$escape($db['host'] ?? 'localhost')}',
-        'port' => {$db['port'] ?? 3306},
+        'port' => {$dbPort},
         'database' => '{$escape($db['database'] ?? '')}',
         'username' => '{$escape($db['username'] ?? '')}',
         'password' => '{$escape($db['password'] ?? '')}',

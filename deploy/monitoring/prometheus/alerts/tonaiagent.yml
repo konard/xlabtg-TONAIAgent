@@ -1,0 +1,187 @@
+# TON AI Agent - Prometheus Alert Rules
+
+groups:
+  - name: tonaiagent.rules
+    rules:
+      # Application Availability
+      - alert: TONAIAgentDown
+        expr: up{job="tonaiagent"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "TON AI Agent is down"
+          description: "TON AI Agent has been unreachable for more than 1 minute."
+
+      - alert: TONAIAgentHighErrorRate
+        expr: rate(http_requests_total{job="tonaiagent",status=~"5.."}[5m]) / rate(http_requests_total{job="tonaiagent"}[5m]) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High error rate on TON AI Agent"
+          description: "Error rate is above 5% for the last 5 minutes."
+
+      - alert: TONAIAgentHighLatency
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{job="tonaiagent"}[5m])) > 2
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High latency on TON AI Agent"
+          description: "95th percentile latency is above 2 seconds."
+
+      # Resource Usage
+      - alert: TONAIAgentHighCPU
+        expr: rate(process_cpu_seconds_total{job="tonaiagent"}[5m]) > 0.8
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High CPU usage on TON AI Agent"
+          description: "CPU usage is above 80% for more than 10 minutes."
+
+      - alert: TONAIAgentHighMemory
+        expr: process_resident_memory_bytes{job="tonaiagent"} / 1024 / 1024 / 1024 > 1.5
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High memory usage on TON AI Agent"
+          description: "Memory usage is above 1.5GB for more than 10 minutes."
+
+      # Worker Alerts
+      - alert: TONAIAgentWorkerDown
+        expr: up{job="tonaiagent-worker"} == 0
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "TON AI Agent worker is down"
+          description: "Worker has been unreachable for more than 1 minute."
+
+      - alert: TONAIAgentJobQueueBacklog
+        expr: tonaiagent_job_queue_length > 1000
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Job queue backlog growing"
+          description: "Job queue has more than 1000 pending jobs."
+
+      # AI Provider Alerts
+      - alert: TONAIAgentAIProviderErrors
+        expr: rate(tonaiagent_ai_requests_total{status="error"}[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "AI provider errors increasing"
+          description: "AI provider error rate is above 10% for the last 5 minutes."
+
+      - alert: TONAIAgentAIProviderLatency
+        expr: histogram_quantile(0.95, rate(tonaiagent_ai_request_duration_seconds_bucket[5m])) > 10
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "AI provider latency high"
+          description: "95th percentile AI request latency is above 10 seconds."
+
+      # TON Network Alerts
+      - alert: TONAIAgentTONRPCErrors
+        expr: rate(tonaiagent_ton_rpc_errors_total[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "TON RPC errors increasing"
+          description: "TON RPC error rate is above 10% for the last 5 minutes."
+
+      # Database Alerts
+      - alert: TONAIAgentDBConnectionErrors
+        expr: rate(tonaiagent_db_errors_total[5m]) > 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Database connection errors"
+          description: "Database connection errors detected."
+
+      # Telegram Alerts
+      - alert: TONAIAgentTelegramWebhookErrors
+        expr: rate(tonaiagent_telegram_webhook_errors_total[5m]) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Telegram webhook errors increasing"
+          description: "Telegram webhook error rate is above 5%."
+
+  - name: infrastructure.rules
+    rules:
+      # PostgreSQL
+      - alert: PostgreSQLDown
+        expr: pg_up == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "PostgreSQL is down"
+          description: "PostgreSQL database is unreachable."
+
+      - alert: PostgreSQLHighConnections
+        expr: pg_stat_activity_count / pg_settings_max_connections > 0.8
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "PostgreSQL connection count high"
+          description: "PostgreSQL is using more than 80% of available connections."
+
+      - alert: PostgreSQLSlowQueries
+        expr: rate(pg_stat_statements_seconds_total[5m]) > 1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "PostgreSQL slow queries detected"
+          description: "Average query time is above 1 second."
+
+      # Redis
+      - alert: RedisDown
+        expr: redis_up == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Redis is down"
+          description: "Redis cache is unreachable."
+
+      - alert: RedisHighMemory
+        expr: redis_memory_used_bytes / redis_memory_max_bytes > 0.9
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Redis memory usage high"
+          description: "Redis is using more than 90% of max memory."
+
+      # Container Resources
+      - alert: ContainerHighCPU
+        expr: rate(container_cpu_usage_seconds_total{name=~"tonaiagent.*"}[5m]) > 0.9
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Container CPU usage high"
+          description: "Container {{ $labels.name }} CPU usage is above 90%."
+
+      - alert: ContainerHighMemory
+        expr: container_memory_usage_bytes{name=~"tonaiagent.*"} / container_spec_memory_limit_bytes > 0.9
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Container memory usage high"
+          description: "Container {{ $labels.name }} memory usage is above 90%."

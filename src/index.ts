@@ -260,3 +260,44 @@ export {
 // Note: Import ai-credit module separately from '@tonaiagent/core/ai-credit'
 // for AI-native credit, lending, and underwriting features (CoinRabbit integration,
 // credit scoring, collateral management, underwriting engine, lending strategies)
+
+// TON Smart Contract Factory
+// TON-native factory system for deploying Agent Wallet Contracts and Strategy Contracts
+// with deterministic address generation, version control, and upgrade patterns.
+// Note: Import ton-factory module separately from '@tonaiagent/core/ton-factory'
+// for full access (factory contract, agent wallets, strategy executor, registry, fee manager)
+export * as TonFactory from './ton-factory';
+export {
+  // Main service
+  createTonFactoryService,
+  DefaultTonFactoryService,
+  // Factory Contract
+  createFactoryContractManager,
+  FactoryContractManager,
+  deriveContractAddress,
+  // Agent Wallet
+  createAgentWalletManager,
+  AgentWalletManager,
+  NonCustodialProvider,
+  MPCProvider,
+  SmartContractWalletProvider,
+  // Strategy Executor
+  createStrategyExecutor,
+  StrategyExecutor,
+  // On-Chain Registry
+  createAgentRegistry,
+  AgentRegistry,
+  // Fee Manager
+  createFeeManager,
+  FeeManager,
+  // Types
+  type TonFactoryConfig,
+  type TonFactoryHealth,
+  type TonFactoryService,
+  type DeployAgentInput,
+  type DeployStrategyInput,
+  type DeploymentResult,
+  type AgentWallet,
+  type AgentRegistryEntry,
+  type FeeRecord,
+} from './ton-factory';

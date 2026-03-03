@@ -76,18 +76,26 @@ jobs:
           fi
 
       - name: Decode Helm values (if provided)
-        if: secrets.HELM_VALUES != ''
+        if: env.HELM_VALUES != ''
+        env:
+          HELM_VALUES: ${{ secrets.HELM_VALUES }}
         run: |
           echo "${{ secrets.HELM_VALUES }}" | base64 -d > values-secrets.yaml
 
       - name: Deploy with Helm
+        env:
+          HELM_VALUES: ${{ secrets.HELM_VALUES }}
         run: |
+          EXTRA_ARGS=""
+          if [ -n "$HELM_VALUES" ]; then
+            EXTRA_ARGS="-f values-secrets.yaml"
+          fi
           helm upgrade --install ${{ env.RELEASE_NAME }} ${{ env.CHART_PATH }} \
             --namespace ${{ env.NAMESPACE }} \
             --create-namespace \
             --set app.image.tag=${{ steps.image-tag.outputs.tag }} \
             --set worker.image.tag=${{ steps.image-tag.outputs.tag }} \
-            ${{ secrets.HELM_VALUES && '-f values-secrets.yaml' || '' }} \
+            $EXTRA_ARGS \
             --wait \
             --timeout 10m
 

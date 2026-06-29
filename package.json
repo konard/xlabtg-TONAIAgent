@@ -617,11 +617,11 @@
     "node": ">=18.0.0"
   },
   "devDependencies": {
-    "@types/node": "^26.0.0",
-    "@typescript-eslint/eslint-plugin": "^8.61.1",
+    "@types/node": "^26.0.1",
+    "@typescript-eslint/eslint-plugin": "^8.62.0",
     "@typescript-eslint/parser": "^8.56.1",
-    "eslint": "^10.5.0",
-    "prettier": "^3.8.4",
+    "eslint": "^10.6.0",
+    "prettier": "^3.9.1",
     "tsup": "^8.5.1",
     "typescript": "^6.0.3",
     "vitest": "^4.1.9"

@@ -29,6 +29,12 @@ import {
  */
 export const PARTIAL_ALLOCATION_MAX_PRIORITY: TaskPriority = 3;
 
+/**
+ * Utilization ratio at which pools using the default limits are rebalanced.
+ * Rebalancing is intended for heavily utilized pools, not every active pool.
+ */
+export const DEFAULT_REBALANCE_THRESHOLD = 0.8;
+
 // ============================================================================
 // Default Capital Manager Implementation
 // ============================================================================
@@ -46,7 +52,7 @@ export class DefaultCapitalManager implements CapitalManager {
       maxPerOperation: 1000,
       dailyLimit: 10000,
       reserveRatio: 0.2,
-      rebalanceThreshold: 0.1,
+      rebalanceThreshold: DEFAULT_REBALANCE_THRESHOLD,
     };
   }
 

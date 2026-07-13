@@ -1117,6 +1117,51 @@ describe('Capital Manager', () => {
     });
   });
 
+  describe('rebalance utilization threshold (LOGIC-66)', () => {
+    const allocate = async (
+      manager: DefaultCapitalManager,
+      agentId: string,
+      amount: number
+    ) => {
+      const allocation = await manager.requestCapital(
+        createCapitalRequest({
+          agentId,
+          amount,
+          purpose: 'Trading',
+        })
+      );
+
+      expect(allocation).not.toBeNull();
+      return allocation!;
+    };
+
+    it('skips a lightly utilized pool with the default limits', async () => {
+      const weakAllocation = await allocate(capitalManager, 'weak_agent', 500);
+      await allocate(capitalManager, 'strong_agent', 500);
+      await capitalManager.updatePerformance('weak_agent', -100);
+
+      await capitalManager.rebalance();
+
+      // 12.5% utilization is well below the intended high-utilization trigger.
+      expect(weakAllocation.amount).toBe(500);
+    });
+
+    it('rebalances a heavily utilized pool with the default limits', async () => {
+      const weakAllocations = await Promise.all(
+        Array.from({ length: 7 }, (_, index) =>
+          allocate(capitalManager, `weak_agent_${index}`, 1000)
+        )
+      );
+      await allocate(capitalManager, 'strong_agent', 1000);
+      await capitalManager.updatePerformance('weak_agent_0', -100);
+
+      await capitalManager.rebalance();
+
+      // 100% utilization exceeds the default high-utilization trigger.
+      expect(weakAllocations[0].amount).toBe(800);
+    });
+  });
+
   // Regression for LOGIC-41: under capital contention, partial allocation must
   // favour higher-priority requests per the documented `1 = highest` ordering.
   describe('partial allocation priority (LOGIC-41)', () => {

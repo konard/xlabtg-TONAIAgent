@@ -285,7 +285,7 @@ export class DefaultChangeNowClient implements ChangeNowClient {
     fromTicker: string,
     toTicker: string,
     amount: string,
-    _type: 'direct' | 'reverse' = 'direct'
+    type: 'direct' | 'reverse' = 'direct'
   ): Promise<ActionResult<ChangeNowEstimate>> {
     const startTime = Date.now();
     try {
@@ -293,6 +293,9 @@ export class DefaultChangeNowClient implements ChangeNowClient {
       const params = new URLSearchParams();
       if (this.config.apiKey) {
         params.append('api_key', this.config.apiKey);
+      }
+      if (type === 'reverse') {
+        params.append('type', type);
       }
 
       const url = params.toString() ? `${endpoint}?${params}` : endpoint;
@@ -313,14 +316,15 @@ export class DefaultChangeNowClient implements ChangeNowClient {
         };
       }
 
+      const estimatedAmount = String(result.data.estimatedAmount);
       const estimate: ChangeNowEstimate = {
-        estimatedAmount: String(result.data.estimatedAmount),
+        estimatedAmount,
         transactionSpeedForecast: result.data.transactionSpeedForecast,
         warningMessage: result.data.warningMessage,
         rateId: result.data.rateId,
         validUntil: result.data.validUntil,
-        fromAmount: amount,
-        toAmount: String(result.data.estimatedAmount),
+        fromAmount: type === 'reverse' ? estimatedAmount : amount,
+        toAmount: type === 'reverse' ? amount : estimatedAmount,
         fromCurrency: fromTicker.toLowerCase(),
         toCurrency: toTicker.toLowerCase(),
         networkFee: result.data.networkFee ? String(result.data.networkFee) : undefined,

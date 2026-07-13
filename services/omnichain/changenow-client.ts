@@ -114,8 +114,8 @@ export class DefaultChangeNowClient implements ChangeNowClient {
   private readonly config: ChangeNowConfig;
   private readonly rateLimiter: RateLimiter;
   private readonly eventCallbacks: OmnichainEventCallback[] = [];
-  private currencyCache: Map<string, ChangeNowCurrency> = new Map();
-  private currencyCacheExpiry: number = 0;
+  private currencyCacheExpiry: Map<boolean, number> = new Map();
+  private currenciesByActive: Map<boolean, ChangeNowCurrency[]> = new Map();
   private readonly cacheDurationMs = 5 * 60 * 1000; // 5 minutes
 
   constructor(config: ChangeNowClientConfig = {}) {
@@ -145,11 +145,12 @@ export class DefaultChangeNowClient implements ChangeNowClient {
     const startTime = Date.now();
     try {
       // Check cache first
-      if (this.currencyCacheExpiry > Date.now() && this.currencyCache.size > 0) {
-        const currencies = Array.from(this.currencyCache.values());
+      const cachedCurrencies = this.currenciesByActive.get(active);
+      const cacheExpiry = this.currencyCacheExpiry.get(active) ?? 0;
+      if (cacheExpiry > Date.now() && cachedCurrencies) {
         return {
           success: true,
-          data: active ? currencies.filter(c => !c.isFiat) : currencies,
+          data: cachedCurrencies,
           executionTime: Date.now() - startTime,
         };
       }
@@ -161,11 +162,8 @@ export class DefaultChangeNowClient implements ChangeNowClient {
 
       if (result.success && result.data) {
         // Update cache
-        this.currencyCache.clear();
-        for (const currency of result.data) {
-          this.currencyCache.set(currency.ticker.toLowerCase(), currency);
-        }
-        this.currencyCacheExpiry = Date.now() + this.cacheDurationMs;
+        this.currenciesByActive.set(active, result.data);
+        this.currencyCacheExpiry.set(active, Date.now() + this.cacheDurationMs);
 
         this.emitEvent('info', 'currencies_fetched', {
           count: result.data.length,
@@ -184,17 +182,7 @@ export class DefaultChangeNowClient implements ChangeNowClient {
   async getCurrency(ticker: string): Promise<ActionResult<ChangeNowCurrency | null>> {
     const startTime = Date.now();
     try {
-      // Check cache first
-      const cached = this.currencyCache.get(ticker.toLowerCase());
-      if (cached && this.currencyCacheExpiry > Date.now()) {
-        return {
-          success: true,
-          data: cached,
-          executionTime: Date.now() - startTime,
-        };
-      }
-
-      // Fetch all currencies and cache
+      // Fetch active currencies or reuse their cache
       const result = await this.getCurrencies();
       if (!result.success) {
         return {
@@ -204,7 +192,8 @@ export class DefaultChangeNowClient implements ChangeNowClient {
         };
       }
 
-      const currency = this.currencyCache.get(ticker.toLowerCase()) || null;
+      const currency =
+        result.data?.find(item => item.ticker.toLowerCase() === ticker.toLowerCase()) ?? null;
       return {
         success: true,
         data: currency,

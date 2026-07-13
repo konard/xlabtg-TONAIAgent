@@ -152,6 +152,53 @@ describe('ChangeNowClient', () => {
   });
 
   describe('currency operations', () => {
+    it('should cache active and all currencies independently', async () => {
+      const activeCurrencies = [
+        {
+          ticker: 'btc',
+          name: 'Bitcoin',
+          image: '',
+          isFiat: false,
+          isStable: false,
+        },
+      ];
+      const allCurrencies = [
+        ...activeCurrencies,
+        {
+          ticker: 'old',
+          name: 'Inactive Coin',
+          image: '',
+          isFiat: false,
+          isStable: false,
+        },
+      ];
+      const fetchMock = vi.fn(async (url: string | URL | Request) => ({
+        ok: true,
+        json: async () =>
+          new URL(String(url)).searchParams.get('active') === 'true'
+            ? activeCurrencies
+            : allCurrencies,
+      }));
+      vi.stubGlobal('fetch', fetchMock);
+
+      const allResult = await client.getCurrencies(false);
+      const activeResult = await client.getCurrencies(true);
+
+      expect(allResult.data?.map(currency => currency.ticker)).toEqual(['btc', 'old']);
+      expect(activeResult.data?.map(currency => currency.ticker)).toEqual(['btc']);
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+
+      const activeFirstClient = createChangeNowClient({ apiKey: 'test_api_key' });
+      const activeFirstResult = await activeFirstClient.getCurrencies(true);
+      const allSecondResult = await activeFirstClient.getCurrencies(false);
+
+      expect(activeFirstResult.data?.map(currency => currency.ticker)).toEqual(['btc']);
+      expect(allSecondResult.data?.map(currency => currency.ticker)).toEqual(['btc', 'old']);
+      expect(fetchMock).toHaveBeenCalledTimes(4);
+
+      vi.unstubAllGlobals();
+    });
+
     it('should get currency from cache', async () => {
       const mockCurrencies = [{ ticker: 'btc', name: 'Bitcoin', image: '', isFiat: false, isStable: false }];
       vi.stubGlobal('fetch', vi.fn().mockResolvedValue({

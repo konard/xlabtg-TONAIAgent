@@ -16,6 +16,8 @@
  */
 
 import { BaseTonDexProvider } from './base';
+import { CoinGeckoProvider } from '../providers/coingecko';
+import type { MarketDataProvider } from '../interface';
 import type {
   TonDexProviderConfig,
   DexPriceQuote,
@@ -133,17 +135,22 @@ const DEDUST_TOKEN_MAP: Record<string, string> = {
  */
 export class DedustProvider extends BaseTonDexProvider {
   private readonly baseUrl: string;
+  private readonly tonUsdPriceProvider: Pick<MarketDataProvider, 'getPrice'>;
   private cachedTokens: string[] | null = null;
   private tokensCacheTime = 0;
   private readonly tokensCacheTtl = 300_000; // 5 minutes
 
-  constructor(config: Partial<TonDexProviderConfig> = {}) {
+  constructor(
+    config: Partial<TonDexProviderConfig> = {},
+    tonUsdPriceProvider: Pick<MarketDataProvider, 'getPrice'> = new CoinGeckoProvider()
+  ) {
     super({
       name: 'dedust',
       ...DEFAULT_DEDUST_CONFIG,
       ...config,
     });
     this.baseUrl = this.config.baseUrl ?? DEFAULT_DEDUST_CONFIG.baseUrl!;
+    this.tonUsdPriceProvider = tonUsdPriceProvider;
   }
 
   getName() {
@@ -481,12 +488,16 @@ export class DedustProvider extends BaseTonDexProvider {
       return price;
     }
 
-    // For TON, we'd need another source for TON/USD
-    // For now, use a placeholder (in production, integrate with external oracle)
     if (normalizedQuote === 'TON') {
-      // This is a simplified placeholder
-      // In production, fetch TON/USD from CoinGecko or another reliable source
-      return price * 5.0; // Approximate TON price, should be dynamic
+      try {
+        const tonUsd = await this.tonUsdPriceProvider.getPrice('TON');
+        return Number.isFinite(tonUsd.price) && tonUsd.price > 0
+          ? price * tonUsd.price
+          : null;
+      } catch (err) {
+        this.log('Failed to fetch TON/USD price', { error: String(err) });
+        return null;
+      }
     }
 
     // Unknown quote currency

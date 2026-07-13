@@ -172,6 +172,60 @@ describe('ChangeNowClient', () => {
     });
   });
 
+  describe('rate operations', () => {
+    it('should request a direct estimate by default', async () => {
+      const fetchMock = vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          estimatedAmount: 10,
+          transactionSpeedForecast: '10-20',
+        }),
+      });
+      vi.stubGlobal('fetch', fetchMock);
+
+      const result = await client.getEstimate('BTC', 'ETH', '0.5');
+
+      expect(fetchMock).toHaveBeenCalledWith(
+        'https://api.changenow.io/v1/exchange-amount/0.5/btc_eth?api_key=test_api_key',
+        expect.objectContaining({ method: 'GET' })
+      );
+      expect(result.data).toMatchObject({
+        estimatedAmount: '10',
+        fromAmount: '0.5',
+        toAmount: '10',
+      });
+
+      vi.unstubAllGlobals();
+    });
+
+    it('should request a reverse estimate for the target amount', async () => {
+      const fetchMock = vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          estimatedAmount: 0.5,
+          transactionSpeedForecast: '10-20',
+        }),
+      });
+      vi.stubGlobal('fetch', fetchMock);
+
+      const result = await client.getEstimate('BTC', 'ETH', '10', 'reverse');
+
+      expect(fetchMock).toHaveBeenCalledWith(
+        'https://api.changenow.io/v1/exchange-amount/10/btc_eth?api_key=test_api_key&type=reverse',
+        expect.objectContaining({ method: 'GET' })
+      );
+      expect(result.data).toMatchObject({
+        estimatedAmount: '0.5',
+        fromAmount: '0.5',
+        toAmount: '10',
+        fromCurrency: 'btc',
+        toCurrency: 'eth',
+      });
+
+      vi.unstubAllGlobals();
+    });
+  });
+
   describe('events', () => {
     it('should subscribe to events', () => {
       const events: OmnichainEvent[] = [];

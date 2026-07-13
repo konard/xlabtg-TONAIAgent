@@ -139,11 +139,10 @@ export class OpenSanctionsProvider {
     const results = data.responses?.q?.results ?? [];
 
     const matches: OpenSanctionsMatch[] = results
-      .filter((r) => r.score >= this.minScore)
       .map((r) => ({
         id: r.id,
         name: r.caption,
-        score: r.score,
+        score: Math.round(r.score * 100),
         datasets: r.datasets,
         properties: {
           name: r.properties['name'],
@@ -153,7 +152,8 @@ export class OpenSanctionsProvider {
           topics: r.properties['topics'],
           createdAt: r.properties['createdAt'],
         },
-      }));
+      }))
+      .filter((match) => match.score >= this.minScore);
 
     return {
       query: entityName,
@@ -177,7 +177,7 @@ export class OpenSanctionsProvider {
         list,
         entityName: match.name,
         entityType: 'individual' as const,
-        matchScore: Math.round(match.score),
+        matchScore: match.score,
         sanctionedSince,
         programs: match.properties.program ?? [],
         aliases: match.properties.alias ?? [],

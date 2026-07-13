@@ -228,6 +228,8 @@ export interface AgentPerformanceMetrics {
   executionsLastHour: number;
   /** Number of failed executions in last hour */
   failedExecutionsLastHour: number;
+  /** Start of the rolling one-hour execution metrics window */
+  hourlyWindowStartedAt: Date;
   /** Strategy P&L in USD (simulated in demo mode) */
   strategyPnlUsd: number;
   /** Total transactions processed */
@@ -236,6 +238,12 @@ export interface AgentPerformanceMetrics {
   lastExecutionAt: Date | null;
   /** Data snapshot timestamp */
   snapshotAt: Date;
+}
+
+/** Result reported by the scheduled job executor. */
+export interface JobExecutionResult {
+  /** Whether strategy execution completed successfully */
+  success: boolean;
 }
 
 /** Anomaly report from the monitoring system */

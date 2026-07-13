@@ -513,30 +513,7 @@ export class AIRouter {
    */
   async execute(request: CompletionRequest): Promise<CompletionResponse> {
     const decision = await this.route(request);
-
-    // Build fallback chain
-    const fallbackChain: Array<{ provider: ProviderType; model: string }> = [
-      { provider: decision.provider, model: decision.model },
-      ...decision.alternatives.map((a) => ({ provider: a.provider, model: a.model })),
-    ];
-
-    // Add configured fallback chain
-    if (this.config.fallbackChain) {
-      for (const providerType of this.config.fallbackChain) {
-        if (!fallbackChain.some((f) => f.provider === providerType)) {
-          const provider = this.registry.get(providerType);
-          if (provider) {
-            const models = await provider.getModels();
-            if (models.length > 0) {
-              fallbackChain.push({
-                provider: providerType,
-                model: models[0].id,
-              });
-            }
-          }
-        }
-      }
-    }
+    const fallbackChain = await this.buildFallbackChain(decision);
 
     let lastError: AIError | undefined;
 
@@ -606,12 +583,7 @@ export class AIRouter {
     callback: StreamCallback
   ): Promise<CompletionResponse> {
     const decision = await this.route(request);
-
-    // Build fallback chain
-    const fallbackChain: Array<{ provider: ProviderType; model: string }> = [
-      { provider: decision.provider, model: decision.model },
-      ...decision.alternatives.map((a) => ({ provider: a.provider, model: a.model })),
-    ];
+    const fallbackChain = await this.buildFallbackChain(decision);
 
     let lastError: AIError | undefined;
 
@@ -678,6 +650,36 @@ export class AIRouter {
    */
   updateConfig(updates: Partial<RouterConfig>): void {
     Object.assign(this.config, updates);
+  }
+
+  private async buildFallbackChain(
+    decision: RoutingDecision
+  ): Promise<Array<{ provider: ProviderType; model: string }>> {
+    const fallbackChain = [
+      { provider: decision.provider, model: decision.model },
+      ...decision.alternatives.map((alternative) => ({
+        provider: alternative.provider,
+        model: alternative.model,
+      })),
+    ];
+
+    for (const providerType of this.config.fallbackChain ?? []) {
+      if (fallbackChain.some((fallback) => fallback.provider === providerType)) {
+        continue;
+      }
+
+      const provider = this.registry.get(providerType);
+      if (!provider) {
+        continue;
+      }
+
+      const [model] = await provider.getModels();
+      if (model) {
+        fallbackChain.push({ provider: providerType, model: model.id });
+      }
+    }
+
+    return fallbackChain;
   }
 
   private createDecision(

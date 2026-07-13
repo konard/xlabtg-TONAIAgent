@@ -480,6 +480,14 @@ export class DelegationEngine {
       task.status = 'pending';
       task.assigneeId = undefined;
 
+      await this.createDelegation(
+        delegation.fromAgentId,
+        task,
+        delegation.toAgentId,
+        delegation.toRole,
+        delegation.constraints
+      );
+
       this.emitEvent('delegation_retry', {
         delegationId,
         taskId: task.id,

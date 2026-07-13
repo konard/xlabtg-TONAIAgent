@@ -449,6 +449,11 @@ export class DefaultSettlementLayer implements SettlementLayer {
         if (leg.status === 'completed') {
           // In a real implementation, this would trigger on-chain reversal
           leg.status = 'cancelled';
+          leg.instruction.status = 'cancelled';
+          leg.instruction.txHash = undefined;
+          leg.instruction.completedAt = undefined;
+          this.settlements.set(leg.instruction.id, leg.instruction);
+          this.completionTimestamps.delete(leg.instruction.id);
         }
       }
       atomicSettlement.status = 'failed';

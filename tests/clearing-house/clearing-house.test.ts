@@ -6,7 +6,7 @@
  * default resolution, settlement layer, and audit module.
  */
 
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import {
   createClearingHouseManager,
   createCentralClearingManager,
@@ -1080,6 +1080,53 @@ describe('SettlementLayer', () => {
 
       const executed = layer.executeAtomicSettlement(atomic.id);
       expect(['completed', 'failed']).toContain(executed.status);
+    });
+
+    it('should exclude rolled-back legs from settled-value metrics', () => {
+      const atomic = layer.createAtomicSettlement({
+        legs: [5000, 7000, 11000].map((amount, index) => ({
+          createParams: {
+            obligationId: `oblig_atomic_${index + 1}`,
+            payerParticipantId: payer,
+            receiverParticipantId: receiver,
+            assetId: 'TON',
+            amount,
+          },
+        })),
+        allOrNothing: true,
+      });
+      const randomSpy = vi
+        .spyOn(Math, 'random')
+        .mockReturnValue(0.01)
+        .mockReturnValueOnce(0.5)
+        .mockReturnValueOnce(0.5)
+        .mockReturnValueOnce(0.5)
+        .mockReturnValueOnce(0.5);
+
+      try {
+        const executed = layer.executeAtomicSettlement(atomic.id);
+
+        expect(executed.status).toBe('failed');
+        expect(executed.legs.map(leg => leg.status)).toEqual([
+          'cancelled',
+          'cancelled',
+          'failed',
+        ]);
+        expect(executed.legs.map(leg => leg.instruction.status)).toEqual([
+          'cancelled',
+          'cancelled',
+          'retry',
+        ]);
+        expect(executed.legs.slice(0, 2).every(leg => leg.instruction.txHash === undefined)).toBe(
+          true
+        );
+        expect(
+          executed.legs.slice(0, 2).every(leg => leg.instruction.completedAt === undefined)
+        ).toBe(true);
+        expect(layer.getSettlementMetrics().totalSettledValue).toBe(0);
+      } finally {
+        randomSpy.mockRestore();
+      }
     });
   });
 

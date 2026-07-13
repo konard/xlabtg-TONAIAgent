@@ -212,6 +212,9 @@ const DEFAULT_LENDING_CONFIG: SecuritiesLendingConfig = {
   autoRecallTrigger: 'margin_call',
 };
 
+// Simplified USD valuation used consistently for collateral checks and interest accrual.
+const LENDING_UNIT_PRICE_USD = 100;
+
 export class DefaultSecuritiesLendingManager implements SecuritiesLendingManager {
   readonly config: SecuritiesLendingConfig;
 
@@ -340,11 +343,10 @@ export class DefaultSecuritiesLendingManager implements SecuritiesLendingManager
       throw new Error(`Agreed rate ${params.agreedRate} below minimum ${token.minimumLendingRate}`);
     }
 
-    // Check collateralization ratio
-    // Compare collateral USD value against loan quantity (unit: tokens)
-    // Ratio = collateralValueUsd / loanQuantity (higher is better)
+    // Check collateralization against the loan's USD value.
     const collateralValue = params.collateral.value;
-    const collRatio = collateralValue / params.quantity;
+    const loanValue = params.quantity * LENDING_UNIT_PRICE_USD;
+    const collRatio = collateralValue / loanValue;
 
     if (collRatio < this.config.minCollateralizationRatio) {
       throw new Error(
@@ -358,7 +360,7 @@ export class DefaultSecuritiesLendingManager implements SecuritiesLendingManager
     const collateralPosition: CollateralPosition = {
       ...params.collateral,
       id: `col_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      adjustedValue: params.collateral.value * (1 - 0.1), // 10% haircut
+      adjustedValue: collateralValue * (1 - 0.1), // 10% haircut
       isLocked: true,
       lockedFor: `lending_${Date.now()}`,
       depositedAt: new Date(),
@@ -459,7 +461,7 @@ export class DefaultSecuritiesLendingManager implements SecuritiesLendingManager
 
     const now = new Date();
     const daysSinceLastAccrual = (now.getTime() - agreement.lastInterestAccrual.getTime()) / (1000 * 60 * 60 * 24);
-    const loanValue = agreement.quantity * 100; // Simplified price
+    const loanValue = agreement.quantity * LENDING_UNIT_PRICE_USD;
     const dailyRate = agreement.lendingRate / 365;
     const interestAccrued = loanValue * dailyRate * daysSinceLastAccrual;
 

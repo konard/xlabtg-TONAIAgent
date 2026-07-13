@@ -1114,10 +1114,10 @@ describe('SecuritiesLendingManager', () => {
           ownerId: 'fund_beta',
           assetId: 'USDT',
           collateralType: 'usdt',
-          amount: 10000,
-          valueUsd: 10000,
+          amount: 150000,
+          value: 150000,
           haircut: 0.02,
-          adjustedValue: 9800,
+          adjustedValue: 147000,
         },
       });
 
@@ -1125,6 +1125,71 @@ describe('SecuritiesLendingManager', () => {
       expect(agreement.status).toBe('on_loan');
       expect(agreement.quantity).toBe(1000);
       expect(agreement.lendingRate).toBe(0.06);
+      expect(agreement.collateralizationRatio).toBe(1.5);
+    });
+
+    it('should reject a loan collateralized at only 1.5% of its USD value', () => {
+      const token = manager.listToken({
+        assetId: 'TON',
+        assetName: 'Toncoin',
+        ownerId: 'fund_alpha',
+        ownerType: 'fund',
+        availableQuantity: 10,
+        minimumLendingRate: 0.05,
+        collateralRequired: ['usdt'],
+      });
+
+      expect(() =>
+        manager.initiateLending({
+          lenderId: 'fund_alpha',
+          borrowerId: 'fund_beta',
+          tokenId: token.id,
+          quantity: 10,
+          agreedRate: 0.06,
+          termDays: 30,
+          collateral: {
+            ownerId: 'fund_beta',
+            assetId: 'USDT',
+            collateralType: 'usdt',
+            amount: 15,
+            value: 15,
+            haircut: 0.02,
+            adjustedValue: 14.7,
+          },
+        })
+      ).toThrow('Insufficient collateral: 0.01 ratio, minimum 1.5');
+    });
+
+    it('should accept collateral equal to 150% of the loan USD value', () => {
+      const token = manager.listToken({
+        assetId: 'TON',
+        assetName: 'Toncoin',
+        ownerId: 'fund_alpha',
+        ownerType: 'fund',
+        availableQuantity: 10,
+        minimumLendingRate: 0.05,
+        collateralRequired: ['usdt'],
+      });
+
+      const agreement = manager.initiateLending({
+        lenderId: 'fund_alpha',
+        borrowerId: 'fund_beta',
+        tokenId: token.id,
+        quantity: 10,
+        agreedRate: 0.06,
+        termDays: 30,
+        collateral: {
+          ownerId: 'fund_beta',
+          assetId: 'USDT',
+          collateralType: 'usdt',
+          amount: 1500,
+          value: 1500,
+          haircut: 0.02,
+          adjustedValue: 1470,
+        },
+      });
+
+      expect(agreement.collateralizationRatio).toBe(1.5);
     });
 
     it('should accrue interest on active loan', () => {
@@ -1149,10 +1214,10 @@ describe('SecuritiesLendingManager', () => {
           ownerId: 'fund_gamma',
           assetId: 'USDT',
           collateralType: 'usdt',
-          amount: 5000,
-          valueUsd: 5000,
+          amount: 75000,
+          value: 75000,
           haircut: 0.02,
-          adjustedValue: 4900,
+          adjustedValue: 73500,
         },
       });
 

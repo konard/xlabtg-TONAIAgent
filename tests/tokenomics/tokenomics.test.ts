@@ -264,6 +264,52 @@ describe('StakingModule', () => {
       expect(rewards.currentApy).toBe(20);
     });
   });
+
+  describe('compoundRewards', () => {
+    it('should compound only auto-compound stakes without marking rewards as claimed', async () => {
+      const autoCompoundStake = await staking.stake({
+        userId: 'user-1',
+        amount: '1000',
+        lockPeriod: 30,
+        autoCompound: true,
+      });
+      const manualStake = await staking.stake({
+        userId: 'user-1',
+        amount: '2000',
+        lockPeriod: 30,
+        autoCompound: false,
+      });
+      autoCompoundStake.pendingRewards = '100';
+      manualStake.pendingRewards = '40';
+
+      const result = await staking.compoundRewards('user-1');
+
+      expect(result.success).toBe(true);
+      expect(result.amount).toBe('100');
+      expect(autoCompoundStake.amount).toBe('1100');
+      expect(autoCompoundStake.pendingRewards).toBe('0');
+      expect(autoCompoundStake.claimedRewards).toBe('0');
+      expect(manualStake.amount).toBe('2000');
+      expect(manualStake.pendingRewards).toBe('40');
+      expect(manualStake.claimedRewards).toBe('0');
+    });
+
+    it('should not report success when only manual stakes have pending rewards', async () => {
+      const manualStake = await staking.stake({
+        userId: 'user-1',
+        amount: '2000',
+        lockPeriod: 30,
+        autoCompound: false,
+      });
+      manualStake.pendingRewards = '40';
+
+      const result = await staking.compoundRewards('user-1');
+
+      expect(result.success).toBe(false);
+      expect(result.amount).toBe('0');
+      expect(manualStake.pendingRewards).toBe('40');
+    });
+  });
 });
 
 // ============================================================================

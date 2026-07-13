@@ -466,8 +466,19 @@ export class DefaultStakingModule implements StakingModule {
 
   async compoundRewards(userId: string): Promise<ClaimRewardsResult> {
     const position = await this.getPosition(userId);
+    let compoundedRewards = BigInt(0);
 
-    if (BigInt(position.pendingRewards) === BigInt(0)) {
+    // Add pending rewards to stake
+    for (const stake of position.stakes) {
+      if (stake.autoCompound) {
+        compoundedRewards += BigInt(stake.pendingRewards);
+        stake.amount = (BigInt(stake.amount) + BigInt(stake.pendingRewards)).toString();
+        stake.pendingRewards = '0';
+        stake.updatedAt = new Date();
+      }
+    }
+
+    if (compoundedRewards === BigInt(0)) {
       return {
         success: false,
         amount: '0',
@@ -475,21 +486,11 @@ export class DefaultStakingModule implements StakingModule {
       };
     }
 
-    // Add pending rewards to stake
-    for (const stake of position.stakes) {
-      if (stake.autoCompound) {
-        stake.amount = (BigInt(stake.amount) + BigInt(stake.pendingRewards)).toString();
-        stake.claimedRewards = (BigInt(stake.claimedRewards) + BigInt(stake.pendingRewards)).toString();
-        stake.pendingRewards = '0';
-        stake.updatedAt = new Date();
-      }
-    }
-
     const breakdown = await this.calculateRewardBreakdown(userId);
 
     return {
       success: true,
-      amount: position.pendingRewards,
+      amount: compoundedRewards.toString(),
       rewardBreakdown: breakdown,
     };
   }

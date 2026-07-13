@@ -404,6 +404,82 @@ describe('AgentRuntimeOrchestrator - execution pipeline', () => {
 // ============================================================================
 
 describe('AgentRuntimeOrchestrator - risk validation', () => {
+  it('should block trading after realized losses reach the daily limit', async () => {
+    const runtime = makeSilentRuntime();
+    runtime.start();
+    runtime.registerAgent(
+      makeAgentConfig({
+        agentId: 'daily-loss-agent',
+        riskLimits: {
+          maxLossPerExecutionNano: BigInt(1_000_000_000),
+          maxDailyLossNano: BigInt(200_000_000),
+          maxDailyGasBudgetNano: BigInt(500_000_000),
+          maxTransactionSizeNano: BigInt(2_000_000_000),
+          maxTransactionsPerDay: 100,
+          maxConsecutiveFailures: 3,
+        },
+      })
+    );
+    runtime.fundAgent('daily-loss-agent', BigInt(1_000_000_000));
+    await runtime.startAgent('daily-loss-agent');
+
+    vi.spyOn(runtime as never, 'stepExecuteOnchain').mockResolvedValue({
+      isSimulation: true,
+      transactionsExecuted: 1,
+      txHashes: ['sim-loss'],
+      gasUsed: '50000000',
+      realizedPnl: '-200000000',
+    });
+
+    const lossExecution = await runtime.runPipeline('daily-loss-agent');
+    expect(lossExecution.success).toBe(true);
+    expect(runtime.getAgentState('daily-loss-agent')?.dailyLoss).toBe(BigInt(200_000_000));
+
+    const blockedExecution = await runtime.runPipeline('daily-loss-agent');
+    expect(blockedExecution.success).toBe(false);
+    expect(blockedExecution.steps.at(-1)?.step).toBe('validate_risk');
+    expect(blockedExecution.error).toContain('Daily loss limit reached');
+  });
+
+  it('should accumulate only realized losses across executions', async () => {
+    const runtime = makeSilentRuntime();
+    runtime.start();
+    runtime.registerAgent(
+      makeAgentConfig({
+        agentId: 'cumulative-loss-agent',
+        riskLimits: {
+          maxLossPerExecutionNano: BigInt(1_000_000_000),
+          maxDailyLossNano: BigInt(200_000_000),
+          maxDailyGasBudgetNano: BigInt(500_000_000),
+          maxTransactionSizeNano: BigInt(2_000_000_000),
+          maxTransactionsPerDay: 100,
+          maxConsecutiveFailures: 3,
+        },
+      })
+    );
+    runtime.fundAgent('cumulative-loss-agent', BigInt(1_000_000_000));
+    await runtime.startAgent('cumulative-loss-agent');
+
+    const executeOnchain = vi.spyOn(runtime as never, 'stepExecuteOnchain');
+    executeOnchain
+      .mockResolvedValueOnce({ transactionsExecuted: 1, gasUsed: '0', realizedPnl: '-120000000' })
+      .mockResolvedValueOnce({ transactionsExecuted: 1, gasUsed: '0', realizedPnl: '50000000' })
+      .mockResolvedValueOnce({ transactionsExecuted: 1, gasUsed: '0', realizedPnl: '-80000000' });
+
+    await runtime.runPipeline('cumulative-loss-agent');
+    expect(runtime.getAgentState('cumulative-loss-agent')?.dailyLoss).toBe(BigInt(120_000_000));
+
+    await runtime.runPipeline('cumulative-loss-agent');
+    expect(runtime.getAgentState('cumulative-loss-agent')?.dailyLoss).toBe(BigInt(120_000_000));
+
+    await runtime.runPipeline('cumulative-loss-agent');
+    expect(runtime.getAgentState('cumulative-loss-agent')?.dailyLoss).toBe(BigInt(200_000_000));
+
+    const blockedExecution = await runtime.runPipeline('cumulative-loss-agent');
+    expect(blockedExecution.success).toBe(false);
+    expect(blockedExecution.error).toContain('Daily loss limit reached');
+  });
+
   it('should suspend agent after maxConsecutiveFailures', async () => {
     const runtime = makeSilentRuntime();
     runtime.start();

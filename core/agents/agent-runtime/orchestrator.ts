@@ -445,7 +445,7 @@ export class AgentRuntimeOrchestrator {
           output = await this.stepExecuteOnchain(agentId, config, state, previousSteps);
           break;
         case 'record_outcome':
-          output = await this.stepRecordOutcome(agentId, executionId, previousSteps);
+          output = await this.stepRecordOutcome(agentId, executionId, state, previousSteps);
           break;
         case 'update_analytics':
           output = await this.stepUpdateAnalytics(agentId, state, previousSteps);
@@ -748,12 +748,18 @@ export class AgentRuntimeOrchestrator {
   private async stepRecordOutcome(
     agentId: string,
     executionId: string,
+    state: RuntimeAgentState,
     previousSteps: PipelineStepResult[]
   ): Promise<Record<string, unknown>> {
     this.log('debug', `[${agentId}] record_outcome`);
 
     const executeStep = previousSteps.find((s) => s.step === 'execute_onchain');
     const aiStep = previousSteps.find((s) => s.step === 'call_ai');
+    const realizedPnl = BigInt(executeStep?.output?.['realizedPnl'] as string ?? '0');
+
+    if (realizedPnl < BigInt(0)) {
+      state.dailyLoss += -realizedPnl;
+    }
 
     const outcome = {
       agentId,
@@ -761,6 +767,8 @@ export class AgentRuntimeOrchestrator {
       recordedAt: new Date().toISOString(),
       transactionsExecuted: executeStep?.output?.['transactionsExecuted'] ?? 0,
       gasUsed: executeStep?.output?.['gasUsed'] ?? '0',
+      realizedPnl: realizedPnl.toString(),
+      dailyLoss: state.dailyLoss.toString(),
       action: (aiStep?.output?.['decision'] as Record<string, unknown> | undefined)?.['action'] ?? 'hold',
       success: true,
     };

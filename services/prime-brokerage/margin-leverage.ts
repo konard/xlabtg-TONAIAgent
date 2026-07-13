@@ -340,7 +340,7 @@ export class DefaultMarginAndLeverageEngine implements MarginAndLeverageEngine {
       throw new Error(`Position not found: ${positionId}`);
     }
 
-    const priceDiff = currentPrice - position.currentPrice;
+    const priceDiff = currentPrice - position.entryPrice;
     position.currentPrice = currentPrice;
     position.unrealizedPnL = position.direction === 'long'
       ? priceDiff * position.size

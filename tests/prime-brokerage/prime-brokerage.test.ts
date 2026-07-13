@@ -304,6 +304,32 @@ describe('MarginAndLeverageEngine', () => {
       const updatedAccount = engine.getMarginAccount(account.id)!;
       expect(updatedAccount.usedMargin).toBe(5000);
     });
+
+    it('should keep unrealized PnL cumulative across successive price updates', () => {
+      const account = engine.createMarginAccount('agent_price_updates', 'agent');
+      engine.updateMarginAccount(account.id, { totalEquity: 1000 });
+      const position = engine.addPosition(account.id, {
+        assetId: 'TON',
+        assetName: 'Toncoin',
+        direction: 'long',
+        size: 10,
+        notionalValue: 1000,
+        entryPrice: 100,
+        currentPrice: 100,
+        unrealizedPnL: 0,
+        marginRequired: 100,
+        leverage: 10,
+        liquidationPrice: 80,
+      });
+
+      engine.updatePositionPrice(account.id, position.positionId, 90);
+      const updatedPosition = engine.updatePositionPrice(account.id, position.positionId, 85);
+
+      expect(updatedPosition.unrealizedPnL).toBe(-150);
+
+      const liquidation = engine.triggerLiquidation(account.id, 'test liquidation');
+      expect(liquidation.positionsLiquidated[0].realizedLoss).toBe(150);
+    });
   });
 
   describe('leverage calculation', () => {

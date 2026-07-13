@@ -894,12 +894,16 @@ export class BacktestingEngine {
 
     const varIndex = Math.floor(distribution.length * (1 - config.confidenceLevel));
     const cvarIndex = Math.floor(distribution.length * (1 - config.confidenceLevel));
+    const var95 = distribution[varIndex] ?? 0;
+    const cvar95 = cvarIndex > 0
+      ? distribution.slice(0, cvarIndex).reduce((a, b) => a + b, 0) / cvarIndex
+      : var95;
 
     return {
       simulations: config.simulations,
       expectedReturn: distribution.reduce((a, b) => a + b, 0) / distribution.length * 100,
-      var95: distribution[varIndex] ?? 0,
-      cvar95: distribution.slice(0, cvarIndex).reduce((a, b) => a + b, 0) / cvarIndex,
+      var95,
+      cvar95,
       worstCase: distribution[0] ?? 0,
       bestCase: distribution[distribution.length - 1] ?? 0,
       distribution: distribution.map(d => d * 100),

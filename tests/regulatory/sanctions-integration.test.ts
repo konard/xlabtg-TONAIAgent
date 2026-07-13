@@ -414,6 +414,32 @@ describe('SanctionsScreener with OpenSanctions provider (mocked)', () => {
     expect(result.matches[0].matchScore).toBe(95);
   });
 
+  it('preserves provenance and entity type for a non-OFAC organization', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(
+      mockOpenSanctionsResponse([
+        {
+          id: 'NK-CH-123',
+          caption: 'Sanctioned Trading AG',
+          schema: 'Organization',
+          score: 0.97,
+          datasets: ['ch_seco_sanctions'],
+          properties: {
+            name: ['Sanctioned Trading AG'],
+          },
+        },
+      ])
+    );
+
+    const screener = createSanctionsScreener({
+      openSanctions: { apiKey: 'os-key' },
+    });
+
+    const result = await screener.screenEntity('Sanctioned Trading AG');
+    expect(result.isMatch).toBe(true);
+    expect(result.matches[0].list).toBe('other');
+    expect(result.matches[0].entityType).toBe('entity');
+  });
+
   it('returns no match when OpenSanctions finds nothing', async () => {
     vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(
       mockOpenSanctionsResponse([])
@@ -1043,6 +1069,30 @@ describe('OpenSanctionsProvider', () => {
     const result = await provider.screenEntity('Low Score Entity');
     expect(result.matches).toHaveLength(0);
     expect(result.hasHit).toBe(false);
+  });
+
+  it.each([
+    ['Person', 'individual'],
+    ['Organization', 'entity'],
+    ['Vessel', 'vessel'],
+    ['Aircraft', 'aircraft'],
+    ['UnknownSchema', 'entity'],
+  ] as const)('maps %s schema to %s entity type', (schema, entityType) => {
+    const provider = createOpenSanctionsProvider({ apiKey: 'key' });
+    const matches = provider.toSanctionsMatches({
+      query: 'Sanctioned subject',
+      hasHit: true,
+      matches: [{
+        id: 'subject-1',
+        name: 'Sanctioned subject',
+        schema,
+        score: 95,
+        datasets: ['ch_seco_sanctions'],
+        properties: {},
+      }],
+    });
+
+    expect(matches[0].entityType).toBe(entityType);
   });
 
   it('throws on OpenSanctions API error', async () => {

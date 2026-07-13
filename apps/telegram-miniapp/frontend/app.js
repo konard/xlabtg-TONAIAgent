@@ -105,7 +105,13 @@
      */
     async refresh() {
       try {
-        await fetch('/healthz', { method: 'GET', credentials: 'same-origin' });
+        const sessionId = API.getSessionId();
+        if (!sessionId) return;
+        await fetch('/healthz', {
+          method: 'GET',
+          credentials: 'same-origin',
+          headers: { 'X-Session-Id': sessionId },
+        });
       } catch (_) {
         // Non-fatal — the cookie may already be present.
       }
@@ -122,11 +128,18 @@
     baseUrl: '/api',
     initData: '',
 
+    /** Stable, server-verified session identifier supplied by Telegram auth. */
+    getSessionId() {
+      return window.Telegram?.WebApp?.initDataUnsafe?.query_id || null;
+    },
+
     async request(endpoint, options = {}) {
       const url = `${this.baseUrl}${endpoint}`;
       const method = (options.method || 'GET').toUpperCase();
       const headers = { 'Content-Type': 'application/json', ...options.headers };
       if (this.initData) headers['X-Telegram-Init-Data'] = this.initData;
+      const sessionId = this.getSessionId();
+      if (sessionId) headers['X-Session-Id'] = sessionId;
       // Double-submit cookie: attach the CSRF token for state-mutating requests.
       if (MUTATION_METHODS.has(method)) {
         const csrfToken = CSRF.getToken();
@@ -561,9 +574,6 @@
      Init
      ============================================================ */
   function init() {
-    // Fetch a CSRF token from /healthz so mutations are authorized from the start.
-    CSRF.refresh();
-
     // Navigation
     document.querySelectorAll('.nav-item').forEach(btn => {
       btn.addEventListener('click', () => showPage(btn.dataset.page));
@@ -579,6 +589,8 @@
     window.addEventListener('tg:ready', (e) => {
       State.user = e.detail.user;
       API.initData = e.detail.initData || '';
+      // The authenticated Telegram session is now available for token binding.
+      CSRF.refresh();
       // Auto-detect referral code on first login (?start=ref_<code>)
       if (e.detail.referralCode) {
         handleReferralDetection(e.detail.referralCode);

@@ -62,13 +62,15 @@ Requests pass through the following middleware in order before reaching any rout
 { "status": "ok", "timestamp": "2026-04-22T00:00:00.000Z" }
 ```
 
-When `CSRF_SECRET` is configured the response also sets a CSRF cookie:
+When `CSRF_SECRET` is configured and the request carries an authenticated
+`X-Session-Id`, the response also sets a CSRF cookie:
 
 ```
 Set-Cookie: csrf_token=<signed-token>; SameSite=Strict; Secure; Path=/
 ```
 
-Clients must call `GET /healthz` once at startup (before any mutation) to obtain this cookie. The Telegram Mini App does this automatically during `init()`.
+Clients must call `GET /healthz` with the same authenticated `X-Session-Id`
+used for subsequent mutations. Anonymous health checks never mint tokens.
 
 #### `GET /readyz` — 200 or 503
 
@@ -168,9 +170,9 @@ Response: `202 Accepted`
 
 The API uses the **double-submit cookie** pattern with HMAC-signed tokens ([OWASP cheat sheet](https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html)):
 
-1. The server issues a signed token as a **non-HttpOnly cookie** (`csrf_token`) on `GET /healthz`.
+1. The server issues a signed token as a **non-HttpOnly cookie** (`csrf_token`) on authenticated `GET /healthz` requests.
 2. Client JavaScript reads the cookie and echoes it in the **`X-CSRF-Token` request header** on every `POST / PUT / PATCH / DELETE` request.
-3. The server verifies the HMAC signature and TTL of the header value — no server-side session storage is required (stateless, scales horizontally).
+3. The server constant-time compares the cookie and header, verifies the HMAC and TTL, and requires the token's session ID to match the authenticated `X-Session-Id`.
 
 ### Token format
 
@@ -178,7 +180,8 @@ The API uses the **double-submit cookie** pattern with HMAC-signed tokens ([OWAS
 <64-char-hex-nonce>.<issuedAt-ms>.<sessionId>.<sha256-hmac-hex>
 ```
 
-Tokens expire after **24 hours**. Call `GET /healthz` again to refresh.
+Tokens expire after **24 hours**. Call `GET /healthz` again with the authenticated
+`X-Session-Id` to refresh.
 
 ### Cookie
 
@@ -204,6 +207,7 @@ fetch('/api/agents', {
   headers: {
     'Content-Type': 'application/json',
     'X-CSRF-Token': csrfToken,
+    'X-Session-Id': sessionId,
   },
   body: JSON.stringify({ ... }),
 });

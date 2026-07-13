@@ -117,6 +117,13 @@ describe('verifyCsrfToken', () => {
     expect(result.reason).toBe('signature_mismatch');
   });
 
+  it('rejects a token minted for a different session', () => {
+    const { token } = generateCsrfToken('session-a', SECRET);
+    const result = verifyCsrfToken(token, SECRET, 'session-b');
+    expect(result.valid).toBe(false);
+    expect(result.reason).toBe('session_mismatch');
+  });
+
   it('returns valid=false with reason=expired for a token with issuedAt in the distant past', () => {
     // Manually craft a token with issuedAt = 0 (epoch)
     const { token } = generateCsrfToken('session-abc', SECRET);
@@ -185,12 +192,22 @@ describe('CSRF E2E', () => {
   }
 
   it('GET /healthz sets a csrf_token cookie when CSRF_SECRET is configured', async () => {
-    const res = await app.inject({ method: 'GET', url: '/healthz' });
+    const res = await app.inject({
+      method: 'GET',
+      url: '/healthz',
+      headers: { 'x-session-id': 'health-session' },
+    });
     expect(res.statusCode).toBe(200);
     const setCookie = res.headers['set-cookie'] as string | undefined;
     expect(setCookie).toBeDefined();
     expect(setCookie).toContain('csrf_token=');
     expect(setCookie).toContain('SameSite=Strict');
+  });
+
+  it('GET /healthz does not mint a CSRF token without an authenticated session', async () => {
+    const res = await app.inject({ method: 'GET', url: '/healthz' });
+    expect(res.statusCode).toBe(200);
+    expect(res.headers['set-cookie']).toBeUndefined();
   });
 
   it('POST /agents → 403 when X-CSRF-Token header is missing', async () => {
@@ -210,6 +227,44 @@ describe('CSRF E2E', () => {
     expect(body.code).toBe('CSRF_INVALID');
   });
 
+  it('POST /agents → 403 when csrf_token cookie is missing', async () => {
+    const { token } = generateCsrfToken('session-a', SECRET);
+    const res = await app.inject({
+      method: 'POST',
+      url: '/agents',
+      headers: {
+        'content-type': 'application/json',
+        'x-forwarded-for': nextIp(),
+        'x-session-id': 'session-a',
+        'x-csrf-token': token,
+      },
+      payload: JSON.stringify({
+        userId: 'u1', name: 'Agent', strategy: 'trend', budgetTon: 100, riskLevel: 'low',
+      }),
+    });
+    expect(res.statusCode).toBe(403);
+    expect(JSON.parse(res.body)).toMatchObject({ code: 'CSRF_INVALID' });
+  });
+
+  it('POST /agents → 403 when authenticated session is missing', async () => {
+    const { token } = generateCsrfToken('session-a', SECRET);
+    const res = await app.inject({
+      method: 'POST',
+      url: '/agents',
+      headers: {
+        'content-type': 'application/json',
+        'x-forwarded-for': nextIp(),
+        'x-csrf-token': token,
+        cookie: `csrf_token=${token}`,
+      },
+      payload: JSON.stringify({
+        userId: 'u1', name: 'Agent', strategy: 'trend', budgetTon: 100, riskLevel: 'low',
+      }),
+    });
+    expect(res.statusCode).toBe(403);
+    expect(JSON.parse(res.body)).toMatchObject({ code: 'CSRF_INVALID' });
+  });
+
   it('POST /agents → 403 when X-CSRF-Token header has a mismatched value', async () => {
     const res = await app.inject({
       method: 'POST',
@@ -226,6 +281,47 @@ describe('CSRF E2E', () => {
     expect(res.statusCode).toBe(403);
     const body = JSON.parse(res.body) as { code: string };
     expect(body.code).toBe('CSRF_INVALID');
+  });
+
+  it('POST /agents → 403 when header token does not equal cookie token', async () => {
+    const headerToken = generateCsrfToken('session-a', SECRET).token;
+    const cookieToken = generateCsrfToken('session-a', SECRET).token;
+    const res = await app.inject({
+      method: 'POST',
+      url: '/agents',
+      headers: {
+        'content-type': 'application/json',
+        'x-forwarded-for': nextIp(),
+        'x-session-id': 'session-a',
+        'x-csrf-token': headerToken,
+        cookie: `csrf_token=${cookieToken}`,
+      },
+      payload: JSON.stringify({
+        userId: 'u1', name: 'Agent', strategy: 'trend', budgetTon: 100, riskLevel: 'low',
+      }),
+    });
+    expect(res.statusCode).toBe(403);
+    expect(JSON.parse(res.body)).toMatchObject({ code: 'CSRF_INVALID' });
+  });
+
+  it('POST /agents → 403 when token belongs to another authenticated session', async () => {
+    const { token } = generateCsrfToken('session-a', SECRET);
+    const res = await app.inject({
+      method: 'POST',
+      url: '/agents',
+      headers: {
+        'content-type': 'application/json',
+        'x-forwarded-for': nextIp(),
+        'x-session-id': 'session-b',
+        'x-csrf-token': token,
+        cookie: `csrf_token=${token}`,
+      },
+      payload: JSON.stringify({
+        userId: 'u1', name: 'Agent', strategy: 'trend', budgetTon: 100, riskLevel: 'low',
+      }),
+    });
+    expect(res.statusCode).toBe(403);
+    expect(JSON.parse(res.body)).toMatchObject({ code: 'CSRF_INVALID' });
   });
 
   it('POST /agents → 403 when X-CSRF-Token contains an expired token', async () => {
@@ -255,14 +351,16 @@ describe('CSRF E2E', () => {
   });
 
   it('POST /agents → 202 when X-CSRF-Token is a valid signed token', async () => {
-    const { token } = generateCsrfToken('', SECRET);
+    const { token } = generateCsrfToken('session-valid', SECRET);
     const res = await app.inject({
       method: 'POST',
       url: '/agents',
       headers: {
         'content-type': 'application/json',
         'x-forwarded-for': nextIp(),
+        'x-session-id': 'session-valid',
         'x-csrf-token': token,
+        cookie: `csrf_token=${token}`,
       },
       payload: JSON.stringify({
         userId: 'user_csrf_ok',

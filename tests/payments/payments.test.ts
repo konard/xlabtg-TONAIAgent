@@ -207,6 +207,58 @@ describe('PaymentGateway', () => {
       );
     });
   });
+
+  // ==========================================================================
+  // Escrow release conditions (issue #500 — LOGIC-52)
+  // ==========================================================================
+  describe('escrow release conditions', () => {
+    const baseParams = {
+      type: 'escrow' as const,
+      method: 'ton_wallet' as const,
+      amount: '100',
+      currency: 'TON' as const,
+      sender: { id: 'sender-1' },
+      recipient: { id: 'recipient-1' },
+      timeout: 60_000,
+    };
+
+    it('should reject release when an escrow release condition is unmet', async () => {
+      const payment = await gateway.createEscrowPayment({
+        ...baseParams,
+        releaseConditions: [{
+          type: 'price_threshold',
+          operator: 'greater_than',
+          value: '200',
+        }],
+      });
+
+      await expect(gateway.releaseEscrow(payment.id)).rejects.toThrow(
+        'Release conditions not met'
+      );
+
+      const stored = await gateway.getPayment(payment.id);
+      expect(stored?.escrow?.status).toBe('held');
+      expect(stored?.status).toBe('processing');
+      expect(stored?.escrow?.releaseConditions[0].status).toBe('not_met');
+    });
+
+    it('should release only when all escrow release conditions are met', async () => {
+      const payment = await gateway.createEscrowPayment({
+        ...baseParams,
+        releaseConditions: [{
+          type: 'balance_check',
+          operator: 'greater_or_equal',
+          value: '100',
+        }],
+      });
+
+      const released = await gateway.releaseEscrow(payment.id);
+
+      expect(released.escrow?.status).toBe('released');
+      expect(released.status).toBe('completed');
+      expect(released.escrow?.releaseConditions[0].status).toBe('met');
+    });
+  });
 });
 
 // ============================================================================

@@ -187,6 +187,25 @@ class DeterministicBacktestDataProvider implements HistoricalDataProvider {
   }
 }
 
+class ProfitFactorBacktestDataProvider extends DeterministicBacktestDataProvider {
+  async getPrices(token: string): Promise<OHLCV[]> {
+    const tonPrices = [
+      100, 150.0001,
+      100, 150.0001,
+      100, 150.0001,
+      100, 150.0001,
+      100, 150.0001,
+      100, 150.0001,
+      100, 150.0001,
+      100, 150.0001,
+      100, 49.9999,
+      100, 49.9999,
+    ];
+
+    return createPriceSeries(token, token === 'TON' ? tonPrices : tonPrices.map(() => 1));
+  }
+}
+
 // ============================================================================
 // Strategy Manager Tests
 // ============================================================================
@@ -922,6 +941,89 @@ describe('Backtesting Engine', () => {
       expect(result.performance.trades.expectancy).toBeGreaterThan(0);
       expect(result.monteCarlo?.expectedReturn).toBeGreaterThan(0);
       expect(result.monteCarlo?.distribution.every(value => value > 0)).toBe(true);
+    });
+
+    it('should calculate profit factor from gross profit and gross loss', async () => {
+      const strategy: Strategy = {
+        id: 'strategy_profit_factor',
+        name: 'Profit Factor Strategy',
+        description: 'Produces eight equal wins and two equal losses',
+        type: 'rule_based',
+        version: 1,
+        status: 'active',
+        userId: 'user_test',
+        agentId: 'agent_test',
+        definition: {
+          triggers: [{
+            id: 'trigger_1',
+            type: 'schedule',
+            name: 'Daily Trigger',
+            enabled: true,
+            config: { type: 'schedule', cron: '0 0 * * *' },
+          }],
+          conditions: [],
+          actions: [{
+            id: 'action_1',
+            type: 'swap',
+            name: 'Buy TON',
+            priority: 1,
+            config: {
+              type: 'swap',
+              fromToken: 'USDT',
+              toToken: 'TON',
+              amount: { type: 'fixed', value: 100 },
+              slippageTolerance: 0,
+            },
+          }],
+          riskControls: [
+            {
+              id: 'risk_1',
+              type: 'take_profit',
+              name: 'Take Profit',
+              enabled: true,
+              config: { type: 'take_profit', percentage: 1, sellPercentage: 100 },
+              action: { type: 'execute_action' },
+            },
+            {
+              id: 'risk_2',
+              type: 'stop_loss',
+              name: 'Stop Loss',
+              enabled: true,
+              config: { type: 'stop_loss', percentage: 1 },
+              action: { type: 'execute_action' },
+            },
+          ],
+          parameters: [],
+          capitalAllocation: {
+            mode: 'fixed',
+            allocatedAmount: 100,
+            minCapital: 50,
+            reservePercentage: 20,
+          },
+        },
+        createdAt: new Date('2024-01-01'),
+        updatedAt: new Date('2024-01-01'),
+        tags: [],
+        metadata: {},
+      };
+
+      const deterministicBacktester = createBacktestingEngine(new ProfitFactorBacktestDataProvider());
+      const result = await deterministicBacktester.runBacktest(strategy, {
+        strategyId: strategy.id,
+        period: {
+          start: new Date('2024-01-01'),
+          end: new Date('2024-01-30'),
+        },
+        initialCapital: 100000,
+        slippageModel: { type: 'fixed', baseSlippage: 0 },
+        feeModel: { tradingFee: 0, gasCost: 0 },
+        dataGranularity: '1d',
+      });
+
+      expect(result.status).toBe('completed');
+      expect(result.performance.trades.winningTrades).toBe(8);
+      expect(result.performance.trades.losingTrades).toBe(2);
+      expect(result.performance.trades.profitFactor).toBeCloseTo(4);
     });
 
     it('should run Monte Carlo simulation', async () => {

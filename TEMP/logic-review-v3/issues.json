@@ -1,0 +1,524 @@
+{
+  "audit": "logic-review-v3",
+  "issue": 496,
+  "version": "2.43.0",
+  "branch": "issue-496-e3384416256d",
+  "filedOnGitHub": true,
+  "note": "Filed on GitHub as issues #500-#526 by request of the maintainer (see PR #497). Labels/stages are embedded in each issue body because the audit account has pull-only access and cannot apply GitHub labels.",
+  "findings": [
+    {
+      "id": "LOGIC-52",
+      "severity": "high",
+      "area": "financial",
+      "stage": "2-funds-accounting",
+      "file": "services/payments/payment-gateway.ts",
+      "doc": "LOGIC-52-escrow-release-wrong-conditions-field.md",
+      "title": "Escrow release evaluates the wrong conditions field, so held funds are always released",
+      "labels": [
+        "bug",
+        "financial",
+        "severity:high",
+        "area:financial",
+        "stage:2-funds-accounting",
+        "audit:logic-review-v3"
+      ],
+      "githubIssue": 500,
+      "githubIssueUrl": "https://github.com/xlabtg/TONAIAgent/issues/500"
+    },
+    {
+      "id": "LOGIC-53",
+      "severity": "high",
+      "area": "financial",
+      "stage": "2-funds-accounting",
+      "file": "services/prime-brokerage/margin-leverage.ts",
+      "doc": "LOGIC-53-margin-unrealized-pnl-delta-not-entry.md",
+      "title": "Margin unrealized PnL is recomputed from the previous tick instead of the entry price",
+      "labels": [
+        "bug",
+        "financial",
+        "severity:high",
+        "area:financial",
+        "stage:2-funds-accounting",
+        "audit:logic-review-v3"
+      ],
+      "githubIssue": 501,
+      "githubIssueUrl": "https://github.com/xlabtg/TONAIAgent/issues/501"
+    },
+    {
+      "id": "LOGIC-54",
+      "severity": "high",
+      "area": "financial",
+      "stage": "2-funds-accounting",
+      "file": "services/prime-brokerage/securities-lending.ts",
+      "doc": "LOGIC-54-securities-lending-collateral-ratio-by-quantity.md",
+      "title": "Securities-lending collateral ratio divides by loan quantity instead of loan value",
+      "labels": [
+        "bug",
+        "financial",
+        "severity:high",
+        "area:financial",
+        "stage:2-funds-accounting",
+        "audit:logic-review-v3"
+      ],
+      "githubIssue": 502,
+      "githubIssueUrl": "https://github.com/xlabtg/TONAIAgent/issues/502"
+    },
+    {
+      "id": "LOGIC-55",
+      "severity": "medium",
+      "area": "financial",
+      "stage": "2-funds-accounting",
+      "file": "services/clearing-house/settlement.ts",
+      "doc": "LOGIC-55-atomic-settlement-rollback-leaves-instruction-completed.md",
+      "title": "Failed atomic settlement leaves the underlying instruction 'completed', inflating settled-value metrics",
+      "labels": [
+        "bug",
+        "financial",
+        "severity:medium",
+        "area:financial",
+        "stage:2-funds-accounting",
+        "audit:logic-review-v3"
+      ],
+      "githubIssue": 503,
+      "githubIssueUrl": "https://github.com/xlabtg/TONAIAgent/issues/503"
+    },
+    {
+      "id": "LOGIC-56",
+      "severity": "low",
+      "area": "financial",
+      "stage": "2-funds-accounting",
+      "file": "extended/tokenomics/staking.ts",
+      "doc": "LOGIC-56-staking-compound-double-counts-claimed.md",
+      "title": "Staking compoundRewards adds reinvested rewards to claimedRewards and reports a cross-stake total",
+      "labels": [
+        "bug",
+        "financial",
+        "severity:low",
+        "area:financial",
+        "stage:2-funds-accounting",
+        "audit:logic-review-v3"
+      ],
+      "githubIssue": 504,
+      "githubIssueUrl": "https://github.com/xlabtg/TONAIAgent/issues/504"
+    },
+    {
+      "id": "LOGIC-57",
+      "severity": "high",
+      "area": "security",
+      "stage": "1-access-control",
+      "file": "core/security/authorization.ts",
+      "doc": "LOGIC-57-authorization-cache-bypasses-stateful-layers.md",
+      "title": "Authorization decision cache short-circuits the rate-limit / daily-limit / anomaly layers, enabling replay",
+      "labels": [
+        "bug",
+        "security",
+        "severity:high",
+        "area:security",
+        "stage:1-access-control",
+        "audit:logic-review-v3"
+      ],
+      "githubIssue": 505,
+      "githubIssueUrl": "https://github.com/xlabtg/TONAIAgent/issues/505"
+    },
+    {
+      "id": "LOGIC-58",
+      "severity": "high",
+      "area": "regulatory",
+      "stage": "1-access-control",
+      "file": "services/regulatory/providers/opensanctions.ts",
+      "doc": "LOGIC-58-opensanctions-score-scale-mismatch.md",
+      "title": "OpenSanctions score-scale mismatch (0-1 vs a 70/85 threshold) silently disables entity sanctions screening",
+      "labels": [
+        "bug",
+        "security",
+        "severity:high",
+        "area:regulatory",
+        "stage:1-access-control",
+        "audit:logic-review-v3"
+      ],
+      "githubIssue": 506,
+      "githubIssueUrl": "https://github.com/xlabtg/TONAIAgent/issues/506"
+    },
+    {
+      "id": "LOGIC-59",
+      "severity": "medium",
+      "area": "security",
+      "stage": "1-access-control",
+      "file": "apps/api/src/middleware/chain.ts",
+      "doc": "LOGIC-59-csrf-double-submit-not-enforced.md",
+      "title": "CSRF middleware never enforces the double-submit cookie invariant and is not session-bound",
+      "labels": [
+        "bug",
+        "security",
+        "severity:medium",
+        "area:security",
+        "stage:1-access-control",
+        "audit:logic-review-v3"
+      ],
+      "githubIssue": 507,
+      "githubIssueUrl": "https://github.com/xlabtg/TONAIAgent/issues/507"
+    },
+    {
+      "id": "LOGIC-60",
+      "severity": "medium",
+      "area": "contracts",
+      "stage": "1-access-control",
+      "file": "contracts/strategy-executor.tact",
+      "doc": "LOGIC-60-strategy-executor-max-not-cumulative-loss.md",
+      "title": "strategy-executor.tact tracks the largest single loss instead of cumulative loss, evading the max-loss auto-stop",
+      "labels": [
+        "bug",
+        "security",
+        "severity:medium",
+        "area:contracts",
+        "stage:1-access-control",
+        "audit:logic-review-v3"
+      ],
+      "githubIssue": 508,
+      "githubIssueUrl": "https://github.com/xlabtg/TONAIAgent/issues/508"
+    },
+    {
+      "id": "LOGIC-61",
+      "severity": "medium",
+      "area": "security",
+      "stage": "1-access-control",
+      "file": "services/auth/auth-service.ts",
+      "doc": "LOGIC-61-api-key-scopes-ignored-for-admin-service.md",
+      "title": "API-key scopes are silently ignored for admin and service roles",
+      "labels": [
+        "bug",
+        "security",
+        "severity:medium",
+        "area:security",
+        "stage:1-access-control",
+        "audit:logic-review-v3"
+      ],
+      "githubIssue": 509,
+      "githubIssueUrl": "https://github.com/xlabtg/TONAIAgent/issues/509"
+    },
+    {
+      "id": "LOGIC-62",
+      "severity": "high",
+      "area": "strategy",
+      "stage": "2-funds-accounting",
+      "file": "core/multi-agent/resources/capital-manager.ts",
+      "doc": "LOGIC-62-capital-pool-grows-on-gains-never-shrinks.md",
+      "title": "Capital-pool accounting only grows on gains and never shrinks on losses",
+      "labels": [
+        "bug",
+        "financial",
+        "severity:high",
+        "area:strategy",
+        "stage:2-funds-accounting",
+        "audit:logic-review-v3"
+      ],
+      "githubIssue": 510,
+      "githubIssueUrl": "https://github.com/xlabtg/TONAIAgent/issues/510"
+    },
+    {
+      "id": "LOGIC-63",
+      "severity": "medium",
+      "area": "strategy",
+      "stage": "5-strategy-integrity",
+      "file": "core/strategies/engine/backtesting.ts",
+      "doc": "LOGIC-63-backtest-profitfactor-avg-not-gross.md",
+      "title": "Engine backtest reports profitFactor as avg win/loss instead of gross profit / gross loss",
+      "labels": [
+        "bug",
+        "financial",
+        "severity:medium",
+        "area:strategy",
+        "stage:5-strategy-integrity",
+        "audit:logic-review-v3"
+      ],
+      "githubIssue": 511,
+      "githubIssueUrl": "https://github.com/xlabtg/TONAIAgent/issues/511"
+    },
+    {
+      "id": "LOGIC-64",
+      "severity": "medium",
+      "area": "ai",
+      "stage": "5-strategy-integrity",
+      "file": "core/ai/routing/router.ts",
+      "doc": "LOGIC-64-router-stream-omits-fallback-chain.md",
+      "title": "Router stream() omits the configured fallback chain that execute() includes",
+      "labels": [
+        "bug",
+        "reliability",
+        "severity:medium",
+        "area:ai",
+        "stage:5-strategy-integrity",
+        "audit:logic-review-v3"
+      ],
+      "githubIssue": 512,
+      "githubIssueUrl": "https://github.com/xlabtg/TONAIAgent/issues/512"
+    },
+    {
+      "id": "LOGIC-65",
+      "severity": "medium",
+      "area": "strategy",
+      "stage": "5-strategy-integrity",
+      "file": "core/strategies/engine/backtesting.ts",
+      "doc": "LOGIC-65-montecarlo-cvar-divide-by-zero.md",
+      "title": "Monte-Carlo CVaR divides by cvarIndex without a zero guard, producing NaN for small sims / high confidence",
+      "labels": [
+        "bug",
+        "reliability",
+        "severity:medium",
+        "area:strategy",
+        "stage:5-strategy-integrity",
+        "audit:logic-review-v3"
+      ],
+      "githubIssue": 513,
+      "githubIssueUrl": "https://github.com/xlabtg/TONAIAgent/issues/513"
+    },
+    {
+      "id": "LOGIC-66",
+      "severity": "low",
+      "area": "strategy",
+      "stage": "5-strategy-integrity",
+      "file": "core/multi-agent/resources/capital-manager.ts",
+      "doc": "LOGIC-66-rebalance-pool-threshold-inverted.md",
+      "title": "rebalancePool uses the 0.1 rebalanceThreshold as a low-utilization floor (inverted semantics)",
+      "labels": [
+        "bug",
+        "reliability",
+        "severity:low",
+        "area:strategy",
+        "stage:5-strategy-integrity",
+        "audit:logic-review-v3"
+      ],
+      "githubIssue": 514,
+      "githubIssueUrl": "https://github.com/xlabtg/TONAIAgent/issues/514"
+    },
+    {
+      "id": "LOGIC-67",
+      "severity": "low",
+      "area": "multi-agent",
+      "stage": "5-strategy-integrity",
+      "file": "core/multi-agent/delegation/task-queue.ts",
+      "doc": "LOGIC-67-fail-delegation-retry-orphans-task.md",
+      "title": "failDelegation retry resets the task to pending and increments retryCount but never re-delegates",
+      "labels": [
+        "bug",
+        "reliability",
+        "severity:low",
+        "area:multi-agent",
+        "stage:5-strategy-integrity",
+        "audit:logic-review-v3"
+      ],
+      "githubIssue": 515,
+      "githubIssueUrl": "https://github.com/xlabtg/TONAIAgent/issues/515"
+    },
+    {
+      "id": "LOGIC-68",
+      "severity": "high",
+      "area": "market-data",
+      "stage": "4-connector-integrity",
+      "file": "core/market-data/base/connectors/dedust.ts",
+      "doc": "LOGIC-68-dedust-hardcoded-ton-usd-price.md",
+      "title": "DeDust connector prices any TON-quoted token using a hardcoded $5.00 TON/USD constant",
+      "labels": [
+        "bug",
+        "financial",
+        "severity:high",
+        "area:market-data",
+        "stage:4-connector-integrity",
+        "audit:logic-review-v3"
+      ],
+      "githubIssue": 516,
+      "githubIssueUrl": "https://github.com/xlabtg/TONAIAgent/issues/516"
+    },
+    {
+      "id": "LOGIC-69",
+      "severity": "medium",
+      "area": "market-data",
+      "stage": "4-connector-integrity",
+      "file": "core/market-data/base/service.ts",
+      "doc": "LOGIC-69-market-data-fallback-cache-unread-key.md",
+      "title": "Market-data service caches fallback-provider prices under a key it never reads",
+      "labels": [
+        "bug",
+        "reliability",
+        "severity:medium",
+        "area:market-data",
+        "stage:4-connector-integrity",
+        "audit:logic-review-v3"
+      ],
+      "githubIssue": 517,
+      "githubIssueUrl": "https://github.com/xlabtg/TONAIAgent/issues/517"
+    },
+    {
+      "id": "LOGIC-70",
+      "severity": "medium",
+      "area": "connectors",
+      "stage": "4-connector-integrity",
+      "file": "services/omnichain/changenow-client.ts",
+      "doc": "LOGIC-70-changenow-estimate-ignores-reverse.md",
+      "title": "ChangeNOW getEstimate ignores its reverse mode and always calls the direct endpoint",
+      "labels": [
+        "bug",
+        "financial",
+        "severity:medium",
+        "area:connectors",
+        "stage:4-connector-integrity",
+        "audit:logic-review-v3"
+      ],
+      "githubIssue": 518,
+      "githubIssueUrl": "https://github.com/xlabtg/TONAIAgent/issues/518"
+    },
+    {
+      "id": "LOGIC-71",
+      "severity": "medium",
+      "area": "connectors",
+      "stage": "4-connector-integrity",
+      "file": "services/omnichain/changenow-client.ts",
+      "doc": "LOGIC-71-changenow-currencies-isfiat-active-cache.md",
+      "title": "ChangeNOW getCurrencies conflates isFiat with active and serves a cache keyed on a different active flag",
+      "labels": [
+        "bug",
+        "data",
+        "severity:medium",
+        "area:connectors",
+        "stage:4-connector-integrity",
+        "audit:logic-review-v3"
+      ],
+      "githubIssue": 519,
+      "githubIssueUrl": "https://github.com/xlabtg/TONAIAgent/issues/519"
+    },
+    {
+      "id": "LOGIC-72",
+      "severity": "low",
+      "area": "market-data",
+      "stage": "4-connector-integrity",
+      "file": "core/market-data/base/config/assets.ts",
+      "doc": "LOGIC-72-binance-usdt-delisted-fallback-symbol.md",
+      "title": "Binance fallback symbol for USDT is the delisted USDTBUSD pair",
+      "labels": [
+        "bug",
+        "reliability",
+        "severity:low",
+        "area:market-data",
+        "stage:4-connector-integrity",
+        "audit:logic-review-v3"
+      ],
+      "githubIssue": 520,
+      "githubIssueUrl": "https://github.com/xlabtg/TONAIAgent/issues/520"
+    },
+    {
+      "id": "LOGIC-73",
+      "severity": "low",
+      "area": "regulatory",
+      "stage": "4-connector-integrity",
+      "file": "services/regulatory/providers/opensanctions.ts",
+      "doc": "LOGIC-73-opensanctions-dataset-default-ofac-individual.md",
+      "title": "OpenSanctions result mapping defaults unknown datasets to ofac_sdn and hardcodes every match as an individual",
+      "labels": [
+        "bug",
+        "data",
+        "severity:low",
+        "area:regulatory",
+        "stage:4-connector-integrity",
+        "audit:logic-review-v3"
+      ],
+      "githubIssue": 521,
+      "githubIssueUrl": "https://github.com/xlabtg/TONAIAgent/issues/521"
+    },
+    {
+      "id": "LOGIC-74",
+      "severity": "high",
+      "area": "runtime",
+      "stage": "1-access-control",
+      "file": "core/agents/lifecycle/lifecycle-orchestrator.ts",
+      "doc": "LOGIC-74-health-monitor-auto-pause-never-fires.md",
+      "title": "Health-monitor auto-pause / auto-suspend can never fire because its two heaviest anomaly inputs are dead signals",
+      "labels": [
+        "bug",
+        "reliability",
+        "severity:high",
+        "area:runtime",
+        "stage:1-access-control",
+        "audit:logic-review-v3"
+      ],
+      "githubIssue": 522,
+      "githubIssueUrl": "https://github.com/xlabtg/TONAIAgent/issues/522"
+    },
+    {
+      "id": "LOGIC-75",
+      "severity": "high",
+      "area": "runtime",
+      "stage": "2-funds-accounting",
+      "file": "core/agents/agent-runtime/orchestrator.ts",
+      "doc": "LOGIC-75-agent-runtime-daily-loss-never-accumulated.md",
+      "title": "Agent-runtime dailyLoss is never accumulated, so the daily-loss risk limit is completely unenforced",
+      "labels": [
+        "bug",
+        "financial",
+        "severity:high",
+        "area:runtime",
+        "stage:2-funds-accounting",
+        "audit:logic-review-v3"
+      ],
+      "githubIssue": 523,
+      "githubIssueUrl": "https://github.com/xlabtg/TONAIAgent/issues/523"
+    },
+    {
+      "id": "LOGIC-76",
+      "severity": "medium",
+      "area": "runtime",
+      "stage": "3-runtime-concurrency",
+      "file": "core/agents/agent-runtime/orchestrator.ts",
+      "doc": "LOGIC-76-agent-runtime-daily-counters-never-reset.md",
+      "title": "dailyGasUsed and dailyTransactionCount are never reset at a day boundary, turning daily limits into permanent lifetime caps",
+      "labels": [
+        "bug",
+        "reliability",
+        "severity:medium",
+        "area:runtime",
+        "stage:3-runtime-concurrency",
+        "audit:logic-review-v3"
+      ],
+      "githubIssue": 524,
+      "githubIssueUrl": "https://github.com/xlabtg/TONAIAgent/issues/524"
+    },
+    {
+      "id": "LOGIC-77",
+      "severity": "medium",
+      "area": "runtime",
+      "stage": "3-runtime-concurrency",
+      "file": "core/runtime/agent-scheduler.ts",
+      "doc": "LOGIC-77-scheduler-execute-agent-no-reentrancy-guard.md",
+      "title": "Scheduler executeAgent has no re-entrancy guard, so triggerNow during an in-flight cycle double-runs the agent",
+      "labels": [
+        "bug",
+        "reliability",
+        "severity:medium",
+        "area:runtime",
+        "stage:3-runtime-concurrency",
+        "audit:logic-review-v3"
+      ],
+      "githubIssue": 525,
+      "githubIssueUrl": "https://github.com/xlabtg/TONAIAgent/issues/525"
+    },
+    {
+      "id": "LOGIC-78",
+      "severity": "medium",
+      "area": "runtime",
+      "stage": "3-runtime-concurrency",
+      "file": "core/runtime/agent-manager.ts",
+      "doc": "LOGIC-78-trigger-agent-bypasses-concurrency-live-state.md",
+      "title": "triggerAgent bypasses the scheduler's concurrency control and mutates the live shared state object",
+      "labels": [
+        "bug",
+        "reliability",
+        "severity:medium",
+        "area:runtime",
+        "stage:3-runtime-concurrency",
+        "audit:logic-review-v3"
+      ],
+      "githubIssue": 526,
+      "githubIssueUrl": "https://github.com/xlabtg/TONAIAgent/issues/526"
+    }
+  ],
+  "repo": "xlabtg/TONAIAgent"
+}

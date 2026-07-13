@@ -806,7 +806,9 @@ export class BacktestingEngine {
     const avgLoss = losingTrades.length > 0
       ? Math.abs(losingTrades.reduce((sum, t) => sum + (t.pnl ?? 0), 0) / losingTrades.length)
       : 0;
-    const profitFactor = avgLoss > 0 ? avgWin / avgLoss : avgWin;
+    const grossProfit = winningTrades.reduce((sum, t) => sum + (t.pnl ?? 0), 0);
+    const grossLoss = Math.abs(losingTrades.reduce((sum, t) => sum + (t.pnl ?? 0), 0));
+    const profitFactor = grossLoss > 0 ? grossProfit / grossLoss : grossProfit > 0 ? Infinity : 0;
 
     // VaR and CVaR
     const sortedReturns = [...dailyReturns].sort((a, b) => a - b);

@@ -1157,7 +1157,7 @@ describe('SecuritiesLendingManager', () => {
           assetId: 'USDT',
           collateralType: 'usdt',
           amount: 1500,
-            value: 1500,
+          value: 1500,
           haircut: 0.02,
           adjustedValue: 1470,
         },

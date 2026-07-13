@@ -390,7 +390,7 @@ describe('SanctionsScreener with OpenSanctions provider (mocked)', () => {
         {
           id: 'Q123',
           caption: 'Evil Person',
-          score: 92,
+          score: 0.95,
           datasets: ['us_ofac_sdn'],
           properties: {
             name: ['Evil Person'],
@@ -411,6 +411,7 @@ describe('SanctionsScreener with OpenSanctions provider (mocked)', () => {
     expect(result.provider).toBe('opensanctions');
     expect(result.matches[0].entityName).toBe('Evil Person');
     expect(result.matches[0].list).toBe('ofac_sdn');
+    expect(result.matches[0].matchScore).toBe(95);
   });
 
   it('returns no match when OpenSanctions finds nothing', async () => {
@@ -1028,7 +1029,7 @@ describe('OpenSanctionsProvider', () => {
           responses: {
             q: {
               results: [
-                { id: 'X', caption: 'Low Score Entity', score: 50, datasets: ['us_ofac_sdn'], properties: {} },
+                { id: 'X', caption: 'Low Score Entity', score: 0.5, datasets: ['us_ofac_sdn'], properties: {} },
               ],
               total: { value: 1 },
             },

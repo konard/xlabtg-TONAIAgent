@@ -348,6 +348,48 @@ describe('StrategyExecutor', () => {
     expect(reportResult.transactions).toHaveTransaction({ success: true });
   });
 
+  it('accumulates repeated actual losses and stops at the maximum loss', async () => {
+    const strategyId = 5005n;
+    await executor.send(
+      orchestrator.getSender(),
+      { value: toNano('0.05') },
+      {
+        $$type: 'RegisterStrategy',
+        strategyId,
+        agentWallet: agentWallet.address,
+        strategyType: 'loss-limited',
+        riskLevel: 0n,
+        maxPositionNano: toNano('10'),
+        maxLossNano: toNano('100'),
+        maxExecutions: 0n,
+        expiresAt: 0n,
+      }
+    );
+    await executor.send(
+      orchestrator.getSender(),
+      { value: toNano('0.05') },
+      { $$type: 'StartStrategy', strategyId }
+    );
+
+    for (const signalNonce of [1n, 2n]) {
+      await executor.send(
+        orchestrator.getSender(),
+        { value: toNano('0.05') },
+        {
+          $$type: 'ReportOutcome',
+          strategyId,
+          signalNonce,
+          actualPnlNano: -BigInt(toNano('60')),
+          gasUsedNano: toNano('0.001'),
+        }
+      );
+    }
+
+    const rec = await executor.getStrategy(strategyId);
+    expect(rec!.cumulativeLossNano).toBe(toNano('120'));
+    expect(rec!.status).toBe(2n);   // STATUS_STOPPED
+  });
+
   // LOGIC-14: ReportOutcome must patch the entry for the *reported* signalNonce,
   // not the most-recent execution (r.executionCount).
   it('ReportOutcome patches the correct audit entry when a second signal was executed after the first', async () => {

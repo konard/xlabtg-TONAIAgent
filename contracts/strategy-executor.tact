@@ -337,12 +337,10 @@ contract StrategyExecutor with Deployable, Ownable {
         require(rec != null, "StrategyExecutor: strategy not found");
         let r: StrategyRecord = rec!!;
 
-        // Update actual cumulative loss if the outcome was worse than projected
+        // Accumulate every actual loss so splitting losses cannot evade the limit
         if (msg.actualPnlNano < 0) {
             let actualLoss: Int = -msg.actualPnlNano;
-            if (actualLoss > r.cumulativeLossNano) {
-                r.cumulativeLossNano = actualLoss;
-            }
+            r.cumulativeLossNano = r.cumulativeLossNano + actualLoss;
             // Auto-stop if real loss now exceeds max loss
             if (r.maxLossNano > 0 && r.cumulativeLossNano >= r.maxLossNano && r.status == STATUS_RUNNING) {
                 r.status = STATUS_STOPPED;

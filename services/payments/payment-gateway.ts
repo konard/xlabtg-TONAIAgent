@@ -628,39 +628,7 @@ export class DefaultPaymentGateway implements PaymentGateway {
 
   async evaluateConditions(paymentId: string): Promise<ConditionEvaluationResult> {
     const payment = await this.getPaymentOrThrow(paymentId);
-
-    if (!payment.conditions || payment.conditions.length === 0) {
-      return {
-        paymentId,
-        conditions: [],
-        allConditionsMet: true,
-        canExecute: true,
-      };
-    }
-
-    const now = new Date();
-    const evaluatedConditions = payment.conditions.map(condition => {
-      const result = this.evaluateCondition(condition);
-      condition.status = result.met ? 'met' : 'not_met';
-      condition.evaluatedAt = now;
-
-      return {
-        conditionId: condition.id,
-        status: result.met ? 'met' as const : 'not_met' as const,
-        currentValue: result.currentValue,
-        evaluatedAt: now,
-        error: result.error,
-      };
-    });
-
-    const allConditionsMet = evaluatedConditions.every(c => c.status === 'met');
-
-    return {
-      paymentId,
-      conditions: evaluatedConditions,
-      allConditionsMet,
-      canExecute: allConditionsMet && payment.status === 'pending',
-    };
+    return this.evaluatePaymentConditions(payment, payment.conditions || []);
   }
 
   async triggerConditionalPayment(paymentId: string): Promise<Payment> {
@@ -765,7 +733,10 @@ export class DefaultPaymentGateway implements PaymentGateway {
 
     // Check conditions if they exist
     if (payment.escrow.releaseConditions.length > 0) {
-      const evaluation = await this.evaluateConditions(paymentId);
+      const evaluation = this.evaluatePaymentConditions(
+        payment,
+        payment.escrow.releaseConditions
+      );
       if (!evaluation.allConditionsMet) {
         throw new Error('Release conditions not met');
       }
@@ -1185,6 +1156,44 @@ export class DefaultPaymentGateway implements PaymentGateway {
         await this.triggerConditionalPayment(payment.id);
       }
     }, 60000); // Check every minute
+  }
+
+  private evaluatePaymentConditions(
+    payment: Payment,
+    conditions: PaymentCondition[]
+  ): ConditionEvaluationResult {
+    if (conditions.length === 0) {
+      return {
+        paymentId: payment.id,
+        conditions: [],
+        allConditionsMet: true,
+        canExecute: true,
+      };
+    }
+
+    const now = new Date();
+    const evaluatedConditions = conditions.map(condition => {
+      const result = this.evaluateCondition(condition);
+      condition.status = result.met ? 'met' : 'not_met';
+      condition.evaluatedAt = now;
+
+      return {
+        conditionId: condition.id,
+        status: result.met ? 'met' as const : 'not_met' as const,
+        currentValue: result.currentValue,
+        evaluatedAt: now,
+        error: result.error,
+      };
+    });
+
+    const allConditionsMet = evaluatedConditions.every(c => c.status === 'met');
+
+    return {
+      paymentId: payment.id,
+      conditions: evaluatedConditions,
+      allConditionsMet,
+      canExecute: allConditionsMet && payment.status === 'pending',
+    };
   }
 
   private evaluateCondition(condition: PaymentCondition): { met: boolean; currentValue?: unknown; error?: string } {

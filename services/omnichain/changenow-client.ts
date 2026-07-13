@@ -26,7 +26,7 @@ import {
   ActionResult,
   OmnichainEvent,
   OmnichainEventCallback,
-} from './types';
+} from "./types";
 
 // ============================================================================
 // Rate Limiter
@@ -69,7 +69,7 @@ class RateLimiter {
   }
 
   private sleep(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 }
 
@@ -81,21 +81,33 @@ export interface ChangeNowClient {
   // Currency operations
   getCurrencies(active?: boolean): Promise<ActionResult<ChangeNowCurrency[]>>;
   getCurrency(ticker: string): Promise<ActionResult<ChangeNowCurrency | null>>;
-  getCurrenciesForPair(fromTicker: string, toTicker: string): Promise<ActionResult<boolean>>;
+  getCurrenciesForPair(
+    fromTicker: string,
+    toTicker: string,
+  ): Promise<ActionResult<boolean>>;
 
   // Rate operations
-  getMinAmount(fromTicker: string, toTicker: string): Promise<ActionResult<ChangeNowMinAmount>>;
+  getMinAmount(
+    fromTicker: string,
+    toTicker: string,
+  ): Promise<ActionResult<ChangeNowMinAmount>>;
   getEstimate(
     fromTicker: string,
     toTicker: string,
     amount: string,
-    type?: 'direct' | 'reverse'
+    type?: "direct" | "reverse",
   ): Promise<ActionResult<ChangeNowEstimate>>;
 
   // Exchange operations
-  createExchange(request: CreateExchangeRequest): Promise<ActionResult<CreateExchangeResponse>>;
-  getTransaction(transactionId: string): Promise<ActionResult<ChangeNowTransaction>>;
-  getTransactionStatus(transactionId: string): Promise<ActionResult<ChangeNowTransactionStatus>>;
+  createExchange(
+    request: CreateExchangeRequest,
+  ): Promise<ActionResult<CreateExchangeResponse>>;
+  getTransaction(
+    transactionId: string,
+  ): Promise<ActionResult<ChangeNowTransaction>>;
+  getTransactionStatus(
+    transactionId: string,
+  ): Promise<ActionResult<ChangeNowTransactionStatus>>;
 
   // Health check
   checkHealth(): Promise<ActionResult<boolean>>;
@@ -119,16 +131,16 @@ export class DefaultChangeNowClient implements ChangeNowClient {
   private readonly cacheDurationMs = 5 * 60 * 1000; // 5 minutes
 
   constructor(config: ChangeNowClientConfig = {}) {
-    if (!config.apiKey && process.env['CHANGENOW_API_KEY']) {
+    if (!config.apiKey && process.env["CHANGENOW_API_KEY"]) {
       console.warn(
-        '[SecretsLoader] Deprecation: CHANGENOW_API_KEY read directly from process.env. ' +
-          'Pass apiKey via config or load it through the SecretsLoader before constructing ChangeNowClient.'
+        "[SecretsLoader] Deprecation: CHANGENOW_API_KEY read directly from process.env. " +
+          "Pass apiKey via config or load it through the SecretsLoader before constructing ChangeNowClient.",
       );
     }
     this.config = {
-      apiKey: config.apiKey || process.env['CHANGENOW_API_KEY'] || '',
-      apiVersion: config.apiVersion || 'v1',
-      baseUrl: config.baseUrl || 'https://api.changenow.io',
+      apiKey: config.apiKey || process.env["CHANGENOW_API_KEY"] || "",
+      apiVersion: config.apiVersion || "v1",
+      baseUrl: config.baseUrl || "https://api.changenow.io",
       timeoutMs: config.timeoutMs || 30000,
       retryAttempts: config.retryAttempts || 3,
       retryDelayMs: config.retryDelayMs || 1000,
@@ -141,15 +153,20 @@ export class DefaultChangeNowClient implements ChangeNowClient {
   // Currency Operations
   // ==========================================================================
 
-  async getCurrencies(active: boolean = true): Promise<ActionResult<ChangeNowCurrency[]>> {
+  async getCurrencies(
+    active: boolean = true,
+  ): Promise<ActionResult<ChangeNowCurrency[]>> {
     const startTime = Date.now();
     try {
       // Check cache first
-      if (this.currencyCacheExpiry > Date.now() && this.currencyCache.size > 0) {
+      if (
+        this.currencyCacheExpiry > Date.now() &&
+        this.currencyCache.size > 0
+      ) {
         const currencies = Array.from(this.currencyCache.values());
         return {
           success: true,
-          data: active ? currencies.filter(c => !c.isFiat) : currencies,
+          data: active ? currencies.filter((c) => !c.isFiat) : currencies,
           executionTime: Date.now() - startTime,
         };
       }
@@ -157,7 +174,10 @@ export class DefaultChangeNowClient implements ChangeNowClient {
       const endpoint = `/${this.config.apiVersion}/currencies`;
       const params = new URLSearchParams({ active: String(active) });
 
-      const result = await this.makeRequest<ChangeNowCurrency[]>('GET', `${endpoint}?${params}`);
+      const result = await this.makeRequest<ChangeNowCurrency[]>(
+        "GET",
+        `${endpoint}?${params}`,
+      );
 
       if (result.success && result.data) {
         // Update cache
@@ -167,7 +187,7 @@ export class DefaultChangeNowClient implements ChangeNowClient {
         }
         this.currencyCacheExpiry = Date.now() + this.cacheDurationMs;
 
-        this.emitEvent('info', 'currencies_fetched', {
+        this.emitEvent("info", "currencies_fetched", {
           count: result.data.length,
         });
       }
@@ -181,7 +201,9 @@ export class DefaultChangeNowClient implements ChangeNowClient {
     }
   }
 
-  async getCurrency(ticker: string): Promise<ActionResult<ChangeNowCurrency | null>> {
+  async getCurrency(
+    ticker: string,
+  ): Promise<ActionResult<ChangeNowCurrency | null>> {
     const startTime = Date.now();
     try {
       // Check cache first
@@ -217,12 +239,15 @@ export class DefaultChangeNowClient implements ChangeNowClient {
 
   async getCurrenciesForPair(
     fromTicker: string,
-    toTicker: string
+    toTicker: string,
   ): Promise<ActionResult<boolean>> {
     const startTime = Date.now();
     try {
       const endpoint = `/${this.config.apiVersion}/currencies-to/${fromTicker.toLowerCase()}`;
-      const result = await this.makeRequest<ChangeNowCurrency[]>('GET', endpoint);
+      const result = await this.makeRequest<ChangeNowCurrency[]>(
+        "GET",
+        endpoint,
+      );
 
       if (!result.success || !result.data) {
         return {
@@ -233,7 +258,7 @@ export class DefaultChangeNowClient implements ChangeNowClient {
       }
 
       const isAvailable = result.data.some(
-        c => c.ticker.toLowerCase() === toTicker.toLowerCase()
+        (c) => c.ticker.toLowerCase() === toTicker.toLowerCase(),
       );
 
       return {
@@ -252,12 +277,15 @@ export class DefaultChangeNowClient implements ChangeNowClient {
 
   async getMinAmount(
     fromTicker: string,
-    toTicker: string
+    toTicker: string,
   ): Promise<ActionResult<ChangeNowMinAmount>> {
     const startTime = Date.now();
     try {
       const endpoint = `/${this.config.apiVersion}/min-amount/${fromTicker.toLowerCase()}_${toTicker.toLowerCase()}`;
-      const result = await this.makeRequest<{ minAmount: number }>('GET', endpoint);
+      const result = await this.makeRequest<{ minAmount: number }>(
+        "GET",
+        endpoint,
+      );
 
       if (!result.success || !result.data) {
         return {
@@ -285,17 +313,17 @@ export class DefaultChangeNowClient implements ChangeNowClient {
     fromTicker: string,
     toTicker: string,
     amount: string,
-    type: 'direct' | 'reverse' = 'direct'
+    type: "direct" | "reverse" = "direct",
   ): Promise<ActionResult<ChangeNowEstimate>> {
     const startTime = Date.now();
     try {
       const endpoint = `/${this.config.apiVersion}/exchange-amount/${amount}/${fromTicker.toLowerCase()}_${toTicker.toLowerCase()}`;
       const params = new URLSearchParams();
       if (this.config.apiKey) {
-        params.append('api_key', this.config.apiKey);
+        params.append("api_key", this.config.apiKey);
       }
-      if (type === 'reverse') {
-        params.append('type', type);
+      if (type === "reverse") {
+        params.append("type", type);
       }
 
       const url = params.toString() ? `${endpoint}?${params}` : endpoint;
@@ -306,7 +334,7 @@ export class DefaultChangeNowClient implements ChangeNowClient {
         rateId?: string;
         validUntil?: string;
         networkFee?: number;
-      }>('GET', url);
+      }>("GET", url);
 
       if (!result.success || !result.data) {
         return {
@@ -323,14 +351,16 @@ export class DefaultChangeNowClient implements ChangeNowClient {
         warningMessage: result.data.warningMessage,
         rateId: result.data.rateId,
         validUntil: result.data.validUntil,
-        fromAmount: type === 'reverse' ? estimatedAmount : amount,
-        toAmount: type === 'reverse' ? amount : estimatedAmount,
+        fromAmount: type === "reverse" ? estimatedAmount : amount,
+        toAmount: type === "reverse" ? amount : estimatedAmount,
         fromCurrency: fromTicker.toLowerCase(),
         toCurrency: toTicker.toLowerCase(),
-        networkFee: result.data.networkFee ? String(result.data.networkFee) : undefined,
+        networkFee: result.data.networkFee
+          ? String(result.data.networkFee)
+          : undefined,
       };
 
-      this.emitEvent('info', 'rate_estimated', {
+      this.emitEvent("info", "rate_estimated", {
         fromCurrency: fromTicker,
         toCurrency: toTicker,
         amount,
@@ -340,7 +370,9 @@ export class DefaultChangeNowClient implements ChangeNowClient {
       return {
         success: true,
         data: estimate,
-        warnings: estimate.warningMessage ? [estimate.warningMessage] : undefined,
+        warnings: estimate.warningMessage
+          ? [estimate.warningMessage]
+          : undefined,
         executionTime: Date.now() - startTime,
       };
     } catch (error) {
@@ -353,7 +385,7 @@ export class DefaultChangeNowClient implements ChangeNowClient {
   // ==========================================================================
 
   async createExchange(
-    request: CreateExchangeRequest
+    request: CreateExchangeRequest,
   ): Promise<ActionResult<CreateExchangeResponse>> {
     const startTime = Date.now();
     try {
@@ -382,10 +414,10 @@ export class DefaultChangeNowClient implements ChangeNowClient {
         toCurrency: string;
         amount: number;
         validUntil?: string;
-      }>('POST', endpoint, body);
+      }>("POST", endpoint, body);
 
       if (!result.success || !result.data) {
-        this.emitEvent('error', 'exchange_creation_failed', {
+        this.emitEvent("error", "exchange_creation_failed", {
           request,
           error: result.error,
         });
@@ -408,7 +440,7 @@ export class DefaultChangeNowClient implements ChangeNowClient {
         validUntil: result.data.validUntil,
       };
 
-      this.emitEvent('info', 'exchange_created', {
+      this.emitEvent("info", "exchange_created", {
         exchangeId: response.id,
         fromCurrency: response.fromCurrency,
         toCurrency: response.toCurrency,
@@ -427,7 +459,7 @@ export class DefaultChangeNowClient implements ChangeNowClient {
   }
 
   async getTransaction(
-    transactionId: string
+    transactionId: string,
   ): Promise<ActionResult<ChangeNowTransaction>> {
     const startTime = Date.now();
     try {
@@ -451,7 +483,7 @@ export class DefaultChangeNowClient implements ChangeNowClient {
         payinHash?: string;
         payoutHash?: string;
         networkFee?: number;
-      }>('GET', endpoint);
+      }>("GET", endpoint);
 
       if (!result.success || !result.data) {
         return {
@@ -472,14 +504,20 @@ export class DefaultChangeNowClient implements ChangeNowClient {
         toCurrency: result.data.toCurrency,
         expectedAmountFrom: String(result.data.expectedAmountFrom),
         expectedAmountTo: String(result.data.expectedAmountTo),
-        amountFrom: result.data.amountFrom ? String(result.data.amountFrom) : undefined,
-        amountTo: result.data.amountTo ? String(result.data.amountTo) : undefined,
+        amountFrom: result.data.amountFrom
+          ? String(result.data.amountFrom)
+          : undefined,
+        amountTo: result.data.amountTo
+          ? String(result.data.amountTo)
+          : undefined,
         createdAt: result.data.createdAt,
         updatedAt: result.data.updatedAt,
         validUntil: result.data.validUntil,
         payinHash: result.data.payinHash,
         payoutHash: result.data.payoutHash,
-        networkFee: result.data.networkFee ? String(result.data.networkFee) : undefined,
+        networkFee: result.data.networkFee
+          ? String(result.data.networkFee)
+          : undefined,
       };
 
       return {
@@ -493,12 +531,15 @@ export class DefaultChangeNowClient implements ChangeNowClient {
   }
 
   async getTransactionStatus(
-    transactionId: string
+    transactionId: string,
   ): Promise<ActionResult<ChangeNowTransactionStatus>> {
     const startTime = Date.now();
     try {
       const endpoint = `/${this.config.apiVersion}/transactions/${transactionId}/${this.config.apiKey}`;
-      const result = await this.makeRequest<{ status: string }>('GET', endpoint);
+      const result = await this.makeRequest<{ status: string }>(
+        "GET",
+        endpoint,
+      );
 
       if (!result.success || !result.data) {
         return {
@@ -535,7 +576,7 @@ export class DefaultChangeNowClient implements ChangeNowClient {
       return {
         success: false,
         data: false,
-        error: this.createError('API_ERROR', 'Health check failed'),
+        error: this.createError("API_ERROR", "Health check failed"),
         executionTime: Date.now() - startTime,
       };
     }
@@ -550,15 +591,15 @@ export class DefaultChangeNowClient implements ChangeNowClient {
   }
 
   private emitEvent(
-    severity: OmnichainEvent['severity'],
+    severity: OmnichainEvent["severity"],
     type: string,
-    data: Record<string, unknown>
+    data: Record<string, unknown>,
   ): void {
     const event: OmnichainEvent = {
       id: this.generateId(),
       timestamp: new Date(),
-      type: type as OmnichainEvent['type'],
-      source: 'changenow_client',
+      type: type as OmnichainEvent["type"],
+      source: "changenow_client",
       severity,
       message: `ChangeNOW: ${type}`,
       data,
@@ -578,9 +619,9 @@ export class DefaultChangeNowClient implements ChangeNowClient {
   // ==========================================================================
 
   private async makeRequest<T>(
-    method: 'GET' | 'POST',
+    method: "GET" | "POST",
     endpoint: string,
-    body?: Record<string, unknown>
+    body?: Record<string, unknown>,
   ): Promise<ActionResult<T>> {
     let lastError: OmnichainError | undefined;
 
@@ -590,7 +631,7 @@ export class DefaultChangeNowClient implements ChangeNowClient {
 
         const url = `${this.config.baseUrl}${endpoint}`;
         const headers: Record<string, string> = {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         };
 
         const options: RequestInit = {
@@ -599,7 +640,7 @@ export class DefaultChangeNowClient implements ChangeNowClient {
           signal: AbortSignal.timeout(this.config.timeoutMs),
         };
 
-        if (body && method === 'POST') {
+        if (body && method === "POST") {
           options.body = JSON.stringify(body);
         }
 
@@ -615,15 +656,18 @@ export class DefaultChangeNowClient implements ChangeNowClient {
             errorMessage = errorBody || errorMessage;
           }
 
-          if (response.status >= 500 && attempt < this.config.retryAttempts - 1) {
-            lastError = this.createError('API_ERROR', errorMessage);
+          if (
+            response.status >= 500 &&
+            attempt < this.config.retryAttempts - 1
+          ) {
+            lastError = this.createError("API_ERROR", errorMessage);
             await this.sleep(this.config.retryDelayMs * (attempt + 1));
             continue;
           }
 
           return {
             success: false,
-            error: this.createError('API_ERROR', errorMessage),
+            error: this.createError("API_ERROR", errorMessage),
             executionTime: 0,
           };
         }
@@ -635,14 +679,15 @@ export class DefaultChangeNowClient implements ChangeNowClient {
           executionTime: 0,
         };
       } catch (error) {
-        const message = error instanceof Error ? error.message : 'Unknown error';
+        const message =
+          error instanceof Error ? error.message : "Unknown error";
 
         if (
-          message.includes('timeout') ||
-          message.includes('network') ||
-          message.includes('ECONNREFUSED')
+          message.includes("timeout") ||
+          message.includes("network") ||
+          message.includes("ECONNREFUSED")
         ) {
-          lastError = this.createError('TIMEOUT', message);
+          lastError = this.createError("TIMEOUT", message);
           if (attempt < this.config.retryAttempts - 1) {
             await this.sleep(this.config.retryDelayMs * (attempt + 1));
             continue;
@@ -651,7 +696,7 @@ export class DefaultChangeNowClient implements ChangeNowClient {
 
         return {
           success: false,
-          error: this.createError('API_ERROR', message),
+          error: this.createError("API_ERROR", message),
           executionTime: 0,
         };
       }
@@ -659,25 +704,28 @@ export class DefaultChangeNowClient implements ChangeNowClient {
 
     return {
       success: false,
-      error: lastError || this.createError('API_ERROR', 'Max retries exceeded'),
+      error: lastError || this.createError("API_ERROR", "Max retries exceeded"),
       executionTime: 0,
     };
   }
 
   private handleError(error: unknown, startTime: number): ActionResult<never> {
-    const message = error instanceof Error ? error.message : 'Unknown error';
+    const message = error instanceof Error ? error.message : "Unknown error";
     return {
       success: false,
-      error: this.createError('API_ERROR', message),
+      error: this.createError("API_ERROR", message),
       executionTime: Date.now() - startTime,
     };
   }
 
-  private createError(code: OmnichainErrorCode, message: string): OmnichainError {
+  private createError(
+    code: OmnichainErrorCode,
+    message: string,
+  ): OmnichainError {
     return {
       code,
       message,
-      retryable: code === 'TIMEOUT' || code === 'API_ERROR',
+      retryable: code === "TIMEOUT" || code === "API_ERROR",
     };
   }
 
@@ -686,7 +734,7 @@ export class DefaultChangeNowClient implements ChangeNowClient {
   }
 
   private sleep(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 }
 
@@ -695,7 +743,7 @@ export class DefaultChangeNowClient implements ChangeNowClient {
 // ============================================================================
 
 export function createChangeNowClient(
-  config?: ChangeNowClientConfig
+  config?: ChangeNowClientConfig,
 ): DefaultChangeNowClient {
   return new DefaultChangeNowClient(config);
 }

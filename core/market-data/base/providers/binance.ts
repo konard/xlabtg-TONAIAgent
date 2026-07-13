@@ -59,6 +59,10 @@ export class BinanceProvider extends BaseMarketDataProvider {
   async getPrice(asset: string): Promise<NormalizedPrice> {
     this.validateAsset(asset);
 
+    if (asset.toUpperCase() === 'USDT') {
+      return this.getUsdtPrice();
+    }
+
     return this.withRetry(async () => {
       const symbol = this.getSymbol(asset);
       const data = await this.fetchTicker24hr(symbol);
@@ -82,6 +86,10 @@ export class BinanceProvider extends BaseMarketDataProvider {
   async getTicker(asset: string): Promise<Ticker> {
     this.validateAsset(asset);
 
+    if (asset.toUpperCase() === 'USDT') {
+      return this.getUsdtTicker();
+    }
+
     return this.withRetry(async () => {
       const symbol = this.getSymbol(asset);
       const data = await this.fetchTicker24hr(symbol);
@@ -102,6 +110,32 @@ export class BinanceProvider extends BaseMarketDataProvider {
   // ============================================================================
   // Private Helpers
   // ============================================================================
+
+  /** Returns USDT as the USD reference asset without relying on another stablecoin pair. */
+  private getUsdtPrice(): NormalizedPrice {
+    return {
+      asset: 'USDT',
+      price: 1,
+      volume24h: 0,
+      priceChange24h: 0,
+      timestamp: this.nowSeconds(),
+      source: 'binance',
+    };
+  }
+
+  /** Returns ticker-compatible data for the USD reference asset. */
+  private getUsdtTicker(): Ticker {
+    return {
+      asset: 'USDT',
+      price: 1,
+      high24h: 1,
+      low24h: 1,
+      volume24h: 0,
+      priceChange24h: 0,
+      timestamp: this.nowSeconds(),
+      source: 'binance',
+    };
+  }
 
   /**
    * Maps an asset symbol to its Binance ticker symbol.

@@ -143,11 +143,15 @@ describe('Asset Configuration', () => {
     expect(COINGECKO_ASSET_IDS['TON']).toBe('the-open-network');
   });
 
-  it('BINANCE_SYMBOLS should map all MVP assets', () => {
-    for (const asset of MVP_ASSETS) {
+  it('BINANCE_SYMBOLS should map all non-reference MVP assets', () => {
+    for (const asset of MVP_ASSETS.filter((symbol) => symbol !== 'USDT')) {
       expect(BINANCE_SYMBOLS[asset]).toBeDefined();
       expect(typeof BINANCE_SYMBOLS[asset]).toBe('string');
     }
+  });
+
+  it('BINANCE_SYMBOLS should not map USDT through another stablecoin pair', () => {
+    expect(BINANCE_SYMBOLS.USDT).toBeUndefined();
   });
 
   it('BINANCE_SYMBOLS should map BTC to "BTCUSDT"', () => {
@@ -517,6 +521,44 @@ describe('BinanceProvider', () => {
     expect(createBinanceProvider()).toBeInstanceOf(BinanceProvider);
   });
 
+  it('getPrice() should resolve USDT at its USD reference price without an API request', async () => {
+    const fetchSpy = vi.spyOn(globalThis, 'fetch');
+    const provider = new BinanceProvider();
+
+    const price = await provider.getPrice('USDT');
+
+    expect(price).toMatchObject({
+      asset: 'USDT',
+      price: 1,
+      volume24h: 0,
+      priceChange24h: 0,
+      source: 'binance',
+    });
+    expect(fetchSpy).not.toHaveBeenCalled();
+
+    fetchSpy.mockRestore();
+  });
+
+  it('getTicker() should resolve USDT at its USD reference price without an API request', async () => {
+    const fetchSpy = vi.spyOn(globalThis, 'fetch');
+    const provider = new BinanceProvider();
+
+    const ticker = await provider.getTicker('USDT');
+
+    expect(ticker).toMatchObject({
+      asset: 'USDT',
+      price: 1,
+      high24h: 1,
+      low24h: 1,
+      volume24h: 0,
+      priceChange24h: 0,
+      source: 'binance',
+    });
+    expect(fetchSpy).not.toHaveBeenCalled();
+
+    fetchSpy.mockRestore();
+  });
+
   it('getPrice() should throw ASSET_NOT_SUPPORTED for unknown asset', async () => {
     const provider = new BinanceProvider();
     await expect(provider.getPrice('INVALID')).rejects.toMatchObject({
@@ -784,6 +826,29 @@ describe('DefaultMarketDataService - getSnapshot', () => {
     for (const asset of MVP_ASSETS) {
       expect(snapshot.prices[asset]).toBeDefined();
     }
+  });
+
+  it('should retain USDT through the Binance fallback during a primary outage', async () => {
+    primaryMock.shouldFail = true;
+    const binance = new BinanceProvider();
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue({
+      ok: false,
+      status: 503,
+    } as Response);
+    service = createMarketDataService(
+      { primaryProvider: 'coingecko', fallbackProvider: 'binance' },
+      { coingecko: primaryMock, binance }
+    );
+
+    const snapshot = await service.getSnapshot();
+
+    expect(snapshot.prices.USDT).toMatchObject({
+      asset: 'USDT',
+      price: 1,
+      source: 'binance',
+    });
+
+    fetchSpy.mockRestore();
   });
 
   it('snapshot should have a source field', async () => {

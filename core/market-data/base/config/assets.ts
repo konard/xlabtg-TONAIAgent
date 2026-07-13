@@ -18,7 +18,7 @@
  * To add a new asset:
  *   1. Add the symbol here
  *   2. Add its CoinGecko ID to COINGECKO_ASSET_IDS
- *   3. Add its Binance trading pair to BINANCE_SYMBOLS
+ *   3. Add its Binance trading pair to BINANCE_SYMBOLS, unless it is the USD reference asset
  */
 export const MVP_ASSETS: readonly string[] = ['BTC', 'ETH', 'TON', 'SOL', 'USDT'] as const;
 
@@ -48,7 +48,7 @@ export const COINGECKO_ASSET_IDS: Record<string, string> = {
  * Maps uppercase asset symbols to their Binance ticker symbols (vs USDT).
  *
  * Used when constructing Binance API requests.
- * Note: USDT is quoted against BUSD on Binance for a valid pair.
+ * USDT itself is resolved locally at its USD reference price by BinanceProvider.
  *
  * Full symbols list: GET https://api.binance.com/api/v3/exchangeInfo
  */
@@ -57,7 +57,6 @@ export const BINANCE_SYMBOLS: Record<string, string> = {
   ETH: 'ETHUSDT',
   TON: 'TONUSDT',
   SOL: 'SOLUSDT',
-  USDT: 'USDTBUSD',
 };
 
 // ============================================================================

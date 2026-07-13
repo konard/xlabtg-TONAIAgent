@@ -462,6 +462,47 @@ describe('LifecycleOrchestrator.executeJob', () => {
     expect(updatedJob?.executionCount).toBe(2);
   });
 
+  it('should record failed executions and auto-pause after repeated failures', async () => {
+    const input = makeInput({ autoActivate: true });
+    await orchestrator.registerAgent(input);
+    await orchestrator.transitionState({ agentId: input.agentId, targetState: 'running', requestedBy: 'user', reason: 'test' });
+    const job = orchestrator.scheduleJob({ agentId: input.agentId, schedule: { type: 'manual' } });
+
+    for (let attempt = 0; attempt < 6; attempt += 1) {
+      await orchestrator.executeJob(input.agentId, job.jobId, { success: false });
+    }
+
+    const health = await orchestrator.runHealthCheck(input.agentId);
+    const record = orchestrator.getAgent(input.agentId);
+    expect(record.cumulativeMetrics.failedExecutionsLastHour).toBe(6);
+    expect(record.cumulativeMetrics.totalTransactions).toBe(0);
+    expect(record.scheduledJobs[0].failureCount).toBe(6);
+    expect(health.anomalies.some((anomaly) => anomaly.type === 'execution_failure_spike')).toBe(true);
+    expect(health.riskScore).toBe(40);
+    expect(record.state).toBe('paused');
+  });
+
+  it('should reset hourly execution counters after one hour', async () => {
+    vi.useFakeTimers();
+    try {
+      vi.setSystemTime(new Date('2026-07-13T10:00:00Z'));
+      const input = makeInput({ autoActivate: true });
+      await orchestrator.registerAgent(input);
+      await orchestrator.transitionState({ agentId: input.agentId, targetState: 'running', requestedBy: 'user', reason: 'test' });
+      const job = orchestrator.scheduleJob({ agentId: input.agentId, schedule: { type: 'manual' } });
+
+      await orchestrator.executeJob(input.agentId, job.jobId, { success: false });
+      vi.setSystemTime(new Date('2026-07-13T11:00:01Z'));
+      await orchestrator.executeJob(input.agentId, job.jobId);
+
+      const metrics = orchestrator.getAgent(input.agentId).cumulativeMetrics;
+      expect(metrics.executionsLastHour).toBe(1);
+      expect(metrics.failedExecutionsLastHour).toBe(0);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('should throw JOB_NOT_FOUND for unknown jobId', async () => {
     const input = makeInput({ autoActivate: true });
     await orchestrator.registerAgent(input);
@@ -498,6 +539,27 @@ describe('LifecycleOrchestrator.runHealthCheck', () => {
     expect(result.status).toBe('healthy');
     expect(result.riskScore).toBe(0);
     expect(result.anomalies).toHaveLength(0);
+  });
+
+  it('should detect a stale runtime heartbeat', async () => {
+    vi.useFakeTimers();
+    try {
+      vi.setSystemTime(new Date('2026-07-13T10:00:00Z'));
+      const input = makeInput({ autoActivate: true });
+      await orchestrator.registerAgent(input);
+      await orchestrator.transitionState({ agentId: input.agentId, targetState: 'running', requestedBy: 'user', reason: 'test' });
+      const job = orchestrator.scheduleJob({ agentId: input.agentId, schedule: { type: 'manual' } });
+      await orchestrator.executeJob(input.agentId, job.jobId);
+
+      vi.setSystemTime(new Date('2026-07-13T10:02:01Z'));
+      const result = await orchestrator.runHealthCheck(input.agentId);
+
+      expect(result.anomalies.some((anomaly) => anomaly.type === 'network_disconnect')).toBe(true);
+      expect(result.riskScore).toBeGreaterThanOrEqual(60);
+      expect(result.components.network).toBe('critical');
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('should detect high latency anomaly', async () => {
@@ -1135,6 +1197,22 @@ describe('LifecycleOrchestratorApi', () => {
     });
     expect(res.status).toBe(200);
     expect((res.body.data as { executed: boolean }).executed).toBe(true);
+  });
+
+  it('POST /lifecycle/agents/:agentId/jobs/:jobId/execute — should record a failed job', async () => {
+    const input = makeInput({ autoActivate: true });
+    await orchestrator.registerAgent(input);
+    await orchestrator.transitionState({ agentId: input.agentId, targetState: 'running', requestedBy: 'user', reason: 'test' });
+    const job = orchestrator.scheduleJob({ agentId: input.agentId, schedule: { type: 'manual' } });
+
+    const res = await api.handle({
+      method: 'POST',
+      path: `/lifecycle/agents/${input.agentId}/jobs/${job.jobId}/execute`,
+      body: { success: false },
+    });
+
+    expect(res.status).toBe(200);
+    expect(orchestrator.getAgent(input.agentId).cumulativeMetrics.failedExecutionsLastHour).toBe(1);
   });
 
   // ── Scale agent ───────────────────────────────────────────────────────────

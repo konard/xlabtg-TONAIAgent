@@ -156,7 +156,7 @@ export class DefaultMarketDataService {
    * @throws MarketDataError if all providers fail
    */
   async getPrice(asset: string): Promise<PriceResult> {
-    const cacheKey = `price:${this.config.primaryProvider}:${asset.toUpperCase()}`;
+    const cacheKey = `price:${asset.toUpperCase()}`;
 
     // Cache hit
     if (this.priceCache.has(cacheKey)) {
@@ -189,14 +189,14 @@ export class DefaultMarketDataService {
     const fallbackName = this.config.fallbackProvider;
     if (fallbackName) {
       const fallback = this.providers.get(fallbackName);
-      const fallbackCacheKey = `price:${fallbackName}:${asset.toUpperCase()}`;
 
       if (fallback) {
         try {
           const price = await fallback.getPrice(asset);
-          this.priceCache.set(fallbackCacheKey, price);
+          this.priceCache.set(cacheKey, price);
           this.emitEvent('provider.fallback', asset, fallbackName, { asset, provider: fallbackName });
           this.emitEvent('price.fetched', asset, fallbackName, { asset, source: fallbackName });
+          this.emitEvent('price.cached', asset, fallbackName, { asset, cacheKey });
           return { price, fromCache: false, usedFallback: true };
         } catch (err) {
           this.emitEvent('provider.error', asset, fallbackName, {
@@ -226,7 +226,7 @@ export class DefaultMarketDataService {
    * @throws MarketDataError if all providers fail
    */
   async getTicker(asset: string): Promise<Ticker> {
-    const cacheKey = `ticker:${this.config.primaryProvider}:${asset.toUpperCase()}`;
+    const cacheKey = `ticker:${asset.toUpperCase()}`;
 
     if (this.tickerCache.has(cacheKey)) {
       return this.tickerCache.get(cacheKey)!;
@@ -255,7 +255,7 @@ export class DefaultMarketDataService {
       if (fallback) {
         try {
           const ticker = await fallback.getTicker(asset);
-          this.tickerCache.set(`ticker:${fallbackName}:${asset.toUpperCase()}`, ticker);
+          this.tickerCache.set(cacheKey, ticker);
           return ticker;
         } catch (err) {
           this.emitEvent('provider.error', asset, fallbackName, {

@@ -4,7 +4,7 @@
  * Comprehensive test suite for the omnichain agent infrastructure.
  */
 
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 
 import {
   // Main service
@@ -40,40 +40,40 @@ import {
   ChainId,
   CrossChainStrategyType,
   OmnichainEvent,
-} from "../../services/omnichain";
+} from '../../services/omnichain';
 
 // ============================================================================
 // Omnichain Service Tests
 // ============================================================================
 
-describe("OmnichainService", () => {
+describe('OmnichainService', () => {
   let service: DefaultOmnichainService;
 
   beforeEach(() => {
     service = createOmnichainService({
       enabled: true,
-      primaryChain: "ton",
+      primaryChain: 'ton',
     });
   });
 
-  describe("initialization", () => {
-    it("should create service with default config", () => {
+  describe('initialization', () => {
+    it('should create service with default config', () => {
       const defaultService = createOmnichainService();
       expect(defaultService).toBeInstanceOf(DefaultOmnichainService);
       expect(defaultService.enabled).toBe(true);
-      expect(defaultService.primaryChain).toBe("ton");
+      expect(defaultService.primaryChain).toBe('ton');
     });
 
-    it("should create service with custom config", () => {
+    it('should create service with custom config', () => {
       const customService = createOmnichainService({
         enabled: true,
-        primaryChain: "eth",
-        supportedChains: ["ton", "eth", "bnb"],
+        primaryChain: 'eth',
+        supportedChains: ['ton', 'eth', 'bnb'],
       });
-      expect(customService.primaryChain).toBe("eth");
+      expect(customService.primaryChain).toBe('eth');
     });
 
-    it("should initialize all components", () => {
+    it('should initialize all components', () => {
       expect(service.exchange).toBeInstanceOf(DefaultChangeNowClient);
       expect(service.portfolio).toBeInstanceOf(DefaultPortfolioEngine);
       expect(service.strategy).toBeInstanceOf(DefaultCrossChainStrategyEngine);
@@ -83,13 +83,10 @@ describe("OmnichainService", () => {
     });
   });
 
-  describe("health check", () => {
-    it("should return health status", async () => {
+  describe('health check', () => {
+    it('should return health status', async () => {
       // Mock exchange.checkHealth to avoid real network calls in CI
-      vi.spyOn(service.exchange, "checkHealth").mockResolvedValue({
-        success: true,
-        data: true,
-      });
+      vi.spyOn(service.exchange, 'checkHealth').mockResolvedValue({ success: true, data: true });
 
       const health = await service.getHealth();
 
@@ -99,12 +96,9 @@ describe("OmnichainService", () => {
       expect(health.lastCheck).toBeInstanceOf(Date);
     });
 
-    it("should report component statuses", async () => {
+    it('should report component statuses', async () => {
       // Mock exchange.checkHealth to avoid real network calls in CI
-      vi.spyOn(service.exchange, "checkHealth").mockResolvedValue({
-        success: true,
-        data: true,
-      });
+      vi.spyOn(service.exchange, 'checkHealth').mockResolvedValue({ success: true, data: true });
 
       const health = await service.getHealth();
 
@@ -116,13 +110,13 @@ describe("OmnichainService", () => {
     });
   });
 
-  describe("events", () => {
-    it("should subscribe to events", () => {
+  describe('events', () => {
+    it('should subscribe to events', () => {
       const events: OmnichainEvent[] = [];
       service.onEvent((event) => events.push(event));
 
       // Events are forwarded from components
-      expect(typeof service.onEvent).toBe("function");
+      expect(typeof service.onEvent).toBe('function');
     });
   });
 });
@@ -131,126 +125,112 @@ describe("OmnichainService", () => {
 // ChangeNOW Client Tests
 // ============================================================================
 
-describe("ChangeNowClient", () => {
+describe('ChangeNowClient', () => {
   let client: DefaultChangeNowClient;
 
   beforeEach(() => {
     client = createChangeNowClient({
-      apiKey: "test_api_key",
+      apiKey: 'test_api_key',
       rateLimitPerSecond: 30,
     });
   });
 
-  describe("initialization", () => {
-    it("should create client with default config", () => {
+  describe('initialization', () => {
+    it('should create client with default config', () => {
       const defaultClient = createChangeNowClient();
       expect(defaultClient).toBeInstanceOf(DefaultChangeNowClient);
     });
 
-    it("should create client with custom config", () => {
+    it('should create client with custom config', () => {
       const customClient = createChangeNowClient({
-        apiKey: "custom_key",
-        apiVersion: "v1",
+        apiKey: 'custom_key',
+        apiVersion: 'v1',
         timeoutMs: 60000,
       });
       expect(customClient).toBeInstanceOf(DefaultChangeNowClient);
     });
   });
 
-  describe("currency operations", () => {
-    it("should get currency from cache", async () => {
-      const mockCurrencies = [
-        {
-          ticker: "btc",
-          name: "Bitcoin",
-          image: "",
-          isFiat: false,
-          isStable: false,
-        },
-      ];
-      vi.stubGlobal(
-        "fetch",
-        vi.fn().mockResolvedValue({
-          ok: true,
-          json: async () => mockCurrencies,
-        }),
-      );
+  describe('currency operations', () => {
+    it('should get currency from cache', async () => {
+      const mockCurrencies = [{ ticker: 'btc', name: 'Bitcoin', image: '', isFiat: false, isStable: false }];
+      vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => mockCurrencies,
+      }));
 
       // First call to populate cache
       await client.getCurrencies();
 
       // Second call should use cache (no additional fetch calls)
-      const fetchCallCount = (global.fetch as ReturnType<typeof vi.fn>).mock
-        .calls.length;
-      const result = await client.getCurrency("btc");
+      const fetchCallCount = (global.fetch as ReturnType<typeof vi.fn>).mock.calls.length;
+      const result = await client.getCurrency('btc');
       expect(result.success).toBe(true);
-      expect((global.fetch as ReturnType<typeof vi.fn>).mock.calls.length).toBe(
-        fetchCallCount,
-      );
+      expect((global.fetch as ReturnType<typeof vi.fn>).mock.calls.length).toBe(fetchCallCount);
 
       vi.unstubAllGlobals();
     });
   });
 
-  describe("rate operations", () => {
-    it("should request a direct estimate by default", async () => {
+  describe('rate operations', () => {
+    it('should request a direct estimate by default', async () => {
       const fetchMock = vi.fn().mockResolvedValue({
         ok: true,
         json: async () => ({
           estimatedAmount: 10,
-          transactionSpeedForecast: "10-20",
+          transactionSpeedForecast: '10-20',
         }),
       });
-      vi.stubGlobal("fetch", fetchMock);
+      vi.stubGlobal('fetch', fetchMock);
 
-      const result = await client.getEstimate("BTC", "ETH", "0.5");
+      const result = await client.getEstimate('BTC', 'ETH', '0.5');
 
       expect(fetchMock).toHaveBeenCalledWith(
-        "https://api.changenow.io/v1/exchange-amount/0.5/btc_eth?api_key=test_api_key",
-        expect.objectContaining({ method: "GET" }),
+        'https://api.changenow.io/v1/exchange-amount/0.5/btc_eth?api_key=test_api_key',
+        expect.objectContaining({ method: 'GET' })
       );
       expect(result.data).toMatchObject({
-        estimatedAmount: "10",
-        fromAmount: "0.5",
-        toAmount: "10",
+        estimatedAmount: '10',
+        fromAmount: '0.5',
+        toAmount: '10',
       });
 
       vi.unstubAllGlobals();
     });
 
-    it("should request a reverse estimate for the target amount", async () => {
+    it('should request a reverse estimate for the target amount', async () => {
       const fetchMock = vi.fn().mockResolvedValue({
         ok: true,
         json: async () => ({
           estimatedAmount: 0.5,
-          transactionSpeedForecast: "10-20",
+          transactionSpeedForecast: '10-20',
         }),
       });
-      vi.stubGlobal("fetch", fetchMock);
+      vi.stubGlobal('fetch', fetchMock);
 
-      const result = await client.getEstimate("BTC", "ETH", "10", "reverse");
+      const result = await client.getEstimate('BTC', 'ETH', '10', 'reverse');
 
       expect(fetchMock).toHaveBeenCalledWith(
-        "https://api.changenow.io/v1/exchange-amount/10/btc_eth?api_key=test_api_key&type=reverse",
-        expect.objectContaining({ method: "GET" }),
+        'https://api.changenow.io/v1/exchange-amount/10/btc_eth?api_key=test_api_key&type=reverse',
+        expect.objectContaining({ method: 'GET' })
       );
       expect(result.data).toMatchObject({
-        estimatedAmount: "0.5",
-        fromAmount: "0.5",
-        toAmount: "10",
-        fromCurrency: "btc",
-        toCurrency: "eth",
+        estimatedAmount: '0.5',
+        fromAmount: '0.5',
+        toAmount: '10',
+        fromCurrency: 'btc',
+        toCurrency: 'eth',
       });
 
       vi.unstubAllGlobals();
     });
   });
 
-  describe("events", () => {
-    it("should subscribe to events", () => {
+  describe('events', () => {
+    it('should subscribe to events', () => {
       const events: OmnichainEvent[] = [];
       client.onEvent((event) => events.push(event));
-      expect(typeof client.onEvent).toBe("function");
+      expect(typeof client.onEvent).toBe('function');
     });
   });
 });
@@ -259,7 +239,7 @@ describe("ChangeNowClient", () => {
 // Portfolio Engine Tests
 // ============================================================================
 
-describe("PortfolioEngine", () => {
+describe('PortfolioEngine', () => {
   let engine: DefaultPortfolioEngine;
 
   beforeEach(() => {
@@ -269,93 +249,93 @@ describe("PortfolioEngine", () => {
     });
   });
 
-  describe("initialization", () => {
-    it("should create engine with default config", () => {
+  describe('initialization', () => {
+    it('should create engine with default config', () => {
       const defaultEngine = createPortfolioEngine();
       expect(defaultEngine).toBeInstanceOf(DefaultPortfolioEngine);
     });
   });
 
-  describe("portfolio operations", () => {
-    it("should get portfolio for user", async () => {
-      const result = await engine.getPortfolio("user_123");
+  describe('portfolio operations', () => {
+    it('should get portfolio for user', async () => {
+      const result = await engine.getPortfolio('user_123');
 
       expect(result.success).toBe(true);
       expect(result.data).toBeDefined();
-      expect(result.data?.userId).toBe("user_123");
+      expect(result.data?.userId).toBe('user_123');
       expect(result.data?.holdings).toBeInstanceOf(Array);
     });
 
-    it("should sync portfolio", async () => {
-      const result = await engine.syncPortfolio("user_123");
+    it('should sync portfolio', async () => {
+      const result = await engine.syncPortfolio('user_123');
 
       expect(result.success).toBe(true);
-      expect(result.data?.syncStatus).toBe("synced");
+      expect(result.data?.syncStatus).toBe('synced');
     });
 
-    it("should get holdings", async () => {
-      const result = await engine.getHoldings("user_123");
-
-      expect(result.success).toBe(true);
-      expect(result.data).toBeInstanceOf(Array);
-    });
-
-    it("should get holdings by chain", async () => {
-      const result = await engine.getHoldings("user_123", "ton");
+    it('should get holdings', async () => {
+      const result = await engine.getHoldings('user_123');
 
       expect(result.success).toBe(true);
       expect(result.data).toBeInstanceOf(Array);
     });
 
-    it("should get chain allocations", async () => {
+    it('should get holdings by chain', async () => {
+      const result = await engine.getHoldings('user_123', 'ton');
+
+      expect(result.success).toBe(true);
+      expect(result.data).toBeInstanceOf(Array);
+    });
+
+    it('should get chain allocations', async () => {
       // First sync portfolio
-      await engine.syncPortfolio("user_123");
+      await engine.syncPortfolio('user_123');
 
-      const result = await engine.getChainAllocations("user_123");
+      const result = await engine.getChainAllocations('user_123');
 
       expect(result.success).toBe(true);
       expect(result.data).toBeInstanceOf(Array);
     });
 
-    it("should get exposure metrics", async () => {
-      const result = await engine.getExposure("user_123");
+    it('should get exposure metrics', async () => {
+      const result = await engine.getExposure('user_123');
 
       expect(result.success).toBe(true);
       expect(result.data).toBeDefined();
-      expect(typeof result.data?.stablecoinPercent).toBe("number");
+      expect(typeof result.data?.stablecoinPercent).toBe('number');
     });
 
-    it("should get risk metrics", async () => {
-      const result = await engine.getRiskMetrics("user_123");
+    it('should get risk metrics', async () => {
+      const result = await engine.getRiskMetrics('user_123');
 
       expect(result.success).toBe(true);
       expect(result.data).toBeDefined();
-      expect(typeof result.data?.overallRiskScore).toBe("number");
+      expect(typeof result.data?.overallRiskScore).toBe('number');
     });
 
-    it("should get total value", async () => {
-      const result = await engine.getTotalValue("user_123");
+    it('should get total value', async () => {
+      const result = await engine.getTotalValue('user_123');
 
       expect(result.success).toBe(true);
       expect(result.data).toBeDefined();
-      expect(typeof result.data?.usd).toBe("number");
-      expect(typeof result.data?.ton).toBe("number");
+      expect(typeof result.data?.usd).toBe('number');
+      expect(typeof result.data?.ton).toBe('number');
     });
 
-    it("should get historical value", async () => {
-      const result = await engine.getHistoricalValue("user_123", "week");
+    it('should get historical value', async () => {
+      const result = await engine.getHistoricalValue('user_123', 'week');
 
       expect(result.success).toBe(true);
       expect(result.data).toBeInstanceOf(Array);
     });
   });
 
-  describe("events", () => {
-    it("should emit events on portfolio sync", async () => {
+  describe('events', () => {
+    it('should emit events on portfolio sync', async () => {
       const events: OmnichainEvent[] = [];
       engine.onEvent((event) => events.push(event));
 
-      await engine.syncPortfolio("user_123");
+      await engine.syncPortfolio('user_123');
 
       expect(events.length).toBeGreaterThan(0);
     });
@@ -366,7 +346,7 @@ describe("PortfolioEngine", () => {
 // Strategy Engine Tests
 // ============================================================================
 
-describe("CrossChainStrategyEngine", () => {
+describe('CrossChainStrategyEngine', () => {
   let engine: DefaultCrossChainStrategyEngine;
 
   beforeEach(() => {
@@ -376,41 +356,41 @@ describe("CrossChainStrategyEngine", () => {
     });
   });
 
-  describe("initialization", () => {
-    it("should create engine with default config", () => {
+  describe('initialization', () => {
+    it('should create engine with default config', () => {
       const defaultEngine = createCrossChainStrategyEngine();
       expect(defaultEngine).toBeInstanceOf(DefaultCrossChainStrategyEngine);
     });
   });
 
-  describe("strategy CRUD", () => {
-    it("should create strategy", async () => {
+  describe('strategy CRUD', () => {
+    it('should create strategy', async () => {
       const result = await engine.createStrategy({
-        name: "Test Strategy",
-        description: "A test strategy",
-        type: "arbitrage",
-        userId: "user_123",
-        agentId: "agent_456",
-        allowedChains: ["ton", "eth"],
-        allowedAssets: ["ton", "eth"],
+        name: 'Test Strategy',
+        description: 'A test strategy',
+        type: 'arbitrage',
+        userId: 'user_123',
+        agentId: 'agent_456',
+        allowedChains: ['ton', 'eth'],
+        allowedAssets: ['ton', 'eth'],
         config: {},
         capitalAllocation: {},
         riskParameters: {},
       });
 
       expect(result.success).toBe(true);
-      expect(result.data?.name).toBe("Test Strategy");
-      expect(result.data?.status).toBe("draft");
+      expect(result.data?.name).toBe('Test Strategy');
+      expect(result.data?.status).toBe('draft');
     });
 
-    it("should require strategy name", async () => {
+    it('should require strategy name', async () => {
       const result = await engine.createStrategy({
-        name: "",
-        description: "A test strategy",
-        type: "arbitrage",
-        userId: "user_123",
-        agentId: "agent_456",
-        allowedChains: ["ton", "eth"],
+        name: '',
+        description: 'A test strategy',
+        type: 'arbitrage',
+        userId: 'user_123',
+        agentId: 'agent_456',
+        allowedChains: ['ton', 'eth'],
         allowedAssets: [],
         config: {},
         capitalAllocation: {},
@@ -420,14 +400,14 @@ describe("CrossChainStrategyEngine", () => {
       expect(result.success).toBe(false);
     });
 
-    it("should get strategy", async () => {
+    it('should get strategy', async () => {
       const created = await engine.createStrategy({
-        name: "Test Strategy",
-        description: "A test strategy",
-        type: "arbitrage",
-        userId: "user_123",
-        agentId: "agent_456",
-        allowedChains: ["ton", "eth"],
+        name: 'Test Strategy',
+        description: 'A test strategy',
+        type: 'arbitrage',
+        userId: 'user_123',
+        agentId: 'agent_456',
+        allowedChains: ['ton', 'eth'],
         allowedAssets: [],
         config: {},
         capitalAllocation: {},
@@ -437,24 +417,24 @@ describe("CrossChainStrategyEngine", () => {
       const result = await engine.getStrategy(created.data!.id);
 
       expect(result.success).toBe(true);
-      expect(result.data?.name).toBe("Test Strategy");
+      expect(result.data?.name).toBe('Test Strategy');
     });
 
-    it("should return null for non-existent strategy", async () => {
-      const result = await engine.getStrategy("non_existent_id");
+    it('should return null for non-existent strategy', async () => {
+      const result = await engine.getStrategy('non_existent_id');
 
       expect(result.success).toBe(true);
       expect(result.data).toBeNull();
     });
 
-    it("should update strategy", async () => {
+    it('should update strategy', async () => {
       const created = await engine.createStrategy({
-        name: "Test Strategy",
-        description: "A test strategy",
-        type: "arbitrage",
-        userId: "user_123",
-        agentId: "agent_456",
-        allowedChains: ["ton", "eth"],
+        name: 'Test Strategy',
+        description: 'A test strategy',
+        type: 'arbitrage',
+        userId: 'user_123',
+        agentId: 'agent_456',
+        allowedChains: ['ton', 'eth'],
         allowedAssets: [],
         config: {},
         capitalAllocation: {},
@@ -462,21 +442,21 @@ describe("CrossChainStrategyEngine", () => {
       });
 
       const result = await engine.updateStrategy(created.data!.id, {
-        name: "Updated Strategy",
+        name: 'Updated Strategy',
       });
 
       expect(result.success).toBe(true);
-      expect(result.data?.name).toBe("Updated Strategy");
+      expect(result.data?.name).toBe('Updated Strategy');
     });
 
-    it("should not update active strategy", async () => {
+    it('should not update active strategy', async () => {
       const created = await engine.createStrategy({
-        name: "Test Strategy",
-        description: "A test strategy",
-        type: "arbitrage",
-        userId: "user_123",
-        agentId: "agent_456",
-        allowedChains: ["ton", "eth"],
+        name: 'Test Strategy',
+        description: 'A test strategy',
+        type: 'arbitrage',
+        userId: 'user_123',
+        agentId: 'agent_456',
+        allowedChains: ['ton', 'eth'],
         allowedAssets: [],
         config: {},
         capitalAllocation: {},
@@ -486,20 +466,20 @@ describe("CrossChainStrategyEngine", () => {
       await engine.activateStrategy(created.data!.id);
 
       const result = await engine.updateStrategy(created.data!.id, {
-        name: "Updated Strategy",
+        name: 'Updated Strategy',
       });
 
       expect(result.success).toBe(false);
     });
 
-    it("should delete strategy", async () => {
+    it('should delete strategy', async () => {
       const created = await engine.createStrategy({
-        name: "Test Strategy",
-        description: "A test strategy",
-        type: "arbitrage",
-        userId: "user_123",
-        agentId: "agent_456",
-        allowedChains: ["ton", "eth"],
+        name: 'Test Strategy',
+        description: 'A test strategy',
+        type: 'arbitrage',
+        userId: 'user_123',
+        agentId: 'agent_456',
+        allowedChains: ['ton', 'eth'],
         allowedAssets: [],
         config: {},
         capitalAllocation: {},
@@ -515,15 +495,15 @@ describe("CrossChainStrategyEngine", () => {
     });
   });
 
-  describe("strategy lifecycle", () => {
-    it("should activate strategy", async () => {
+  describe('strategy lifecycle', () => {
+    it('should activate strategy', async () => {
       const created = await engine.createStrategy({
-        name: "Test Strategy",
-        description: "A test strategy",
-        type: "arbitrage",
-        userId: "user_123",
-        agentId: "agent_456",
-        allowedChains: ["ton", "eth"],
+        name: 'Test Strategy',
+        description: 'A test strategy',
+        type: 'arbitrage',
+        userId: 'user_123',
+        agentId: 'agent_456',
+        allowedChains: ['ton', 'eth'],
         allowedAssets: [],
         config: {},
         capitalAllocation: {},
@@ -535,17 +515,17 @@ describe("CrossChainStrategyEngine", () => {
       expect(result.success).toBe(true);
 
       const getResult = await engine.getStrategy(created.data!.id);
-      expect(getResult.data?.status).toBe("active");
+      expect(getResult.data?.status).toBe('active');
     });
 
-    it("should pause strategy", async () => {
+    it('should pause strategy', async () => {
       const created = await engine.createStrategy({
-        name: "Test Strategy",
-        description: "A test strategy",
-        type: "arbitrage",
-        userId: "user_123",
-        agentId: "agent_456",
-        allowedChains: ["ton", "eth"],
+        name: 'Test Strategy',
+        description: 'A test strategy',
+        type: 'arbitrage',
+        userId: 'user_123',
+        agentId: 'agent_456',
+        allowedChains: ['ton', 'eth'],
         allowedAssets: [],
         config: {},
         capitalAllocation: {},
@@ -553,22 +533,22 @@ describe("CrossChainStrategyEngine", () => {
       });
 
       await engine.activateStrategy(created.data!.id);
-      const result = await engine.pauseStrategy(created.data!.id, "Test pause");
+      const result = await engine.pauseStrategy(created.data!.id, 'Test pause');
 
       expect(result.success).toBe(true);
 
       const getResult = await engine.getStrategy(created.data!.id);
-      expect(getResult.data?.status).toBe("paused");
+      expect(getResult.data?.status).toBe('paused');
     });
 
-    it("should stop strategy", async () => {
+    it('should stop strategy', async () => {
       const created = await engine.createStrategy({
-        name: "Test Strategy",
-        description: "A test strategy",
-        type: "arbitrage",
-        userId: "user_123",
-        agentId: "agent_456",
-        allowedChains: ["ton", "eth"],
+        name: 'Test Strategy',
+        description: 'A test strategy',
+        type: 'arbitrage',
+        userId: 'user_123',
+        agentId: 'agent_456',
+        allowedChains: ['ton', 'eth'],
         allowedAssets: [],
         config: {},
         capitalAllocation: {},
@@ -581,19 +561,19 @@ describe("CrossChainStrategyEngine", () => {
       expect(result.success).toBe(true);
 
       const getResult = await engine.getStrategy(created.data!.id);
-      expect(getResult.data?.status).toBe("stopped");
+      expect(getResult.data?.status).toBe('stopped');
     });
   });
 
-  describe("strategy listing", () => {
-    it("should list strategies for user", async () => {
+  describe('strategy listing', () => {
+    it('should list strategies for user', async () => {
       await engine.createStrategy({
-        name: "Strategy 1",
-        description: "First strategy",
-        type: "arbitrage",
-        userId: "user_123",
-        agentId: "agent_456",
-        allowedChains: ["ton", "eth"],
+        name: 'Strategy 1',
+        description: 'First strategy',
+        type: 'arbitrage',
+        userId: 'user_123',
+        agentId: 'agent_456',
+        allowedChains: ['ton', 'eth'],
         allowedAssets: [],
         config: {},
         capitalAllocation: {},
@@ -601,32 +581,32 @@ describe("CrossChainStrategyEngine", () => {
       });
 
       await engine.createStrategy({
-        name: "Strategy 2",
-        description: "Second strategy",
-        type: "yield_rotation",
-        userId: "user_123",
-        agentId: "agent_789",
-        allowedChains: ["ton", "bnb"],
+        name: 'Strategy 2',
+        description: 'Second strategy',
+        type: 'yield_rotation',
+        userId: 'user_123',
+        agentId: 'agent_789',
+        allowedChains: ['ton', 'bnb'],
         allowedAssets: [],
         config: {},
         capitalAllocation: {},
         riskParameters: {},
       });
 
-      const result = await engine.listStrategies("user_123");
+      const result = await engine.listStrategies('user_123');
 
       expect(result.success).toBe(true);
       expect(result.data?.length).toBe(2);
     });
 
-    it("should filter strategies by type", async () => {
+    it('should filter strategies by type', async () => {
       await engine.createStrategy({
-        name: "Arbitrage Strategy",
-        description: "Arbitrage",
-        type: "arbitrage",
-        userId: "user_123",
-        agentId: "agent_456",
-        allowedChains: ["ton", "eth"],
+        name: 'Arbitrage Strategy',
+        description: 'Arbitrage',
+        type: 'arbitrage',
+        userId: 'user_123',
+        agentId: 'agent_456',
+        allowedChains: ['ton', 'eth'],
         allowedAssets: [],
         config: {},
         capitalAllocation: {},
@@ -634,35 +614,33 @@ describe("CrossChainStrategyEngine", () => {
       });
 
       await engine.createStrategy({
-        name: "Yield Strategy",
-        description: "Yield",
-        type: "yield_rotation",
-        userId: "user_123",
-        agentId: "agent_789",
-        allowedChains: ["ton", "bnb"],
+        name: 'Yield Strategy',
+        description: 'Yield',
+        type: 'yield_rotation',
+        userId: 'user_123',
+        agentId: 'agent_789',
+        allowedChains: ['ton', 'bnb'],
         allowedAssets: [],
         config: {},
         capitalAllocation: {},
         riskParameters: {},
       });
 
-      const result = await engine.listStrategies("user_123", {
-        type: "arbitrage",
-      });
+      const result = await engine.listStrategies('user_123', { type: 'arbitrage' });
 
       expect(result.success).toBe(true);
       expect(result.data?.length).toBe(1);
-      expect(result.data?.[0].type).toBe("arbitrage");
+      expect(result.data?.[0].type).toBe('arbitrage');
     });
 
-    it("should get active strategies", async () => {
+    it('should get active strategies', async () => {
       const strategy1 = await engine.createStrategy({
-        name: "Active Strategy",
-        description: "Will be active",
-        type: "arbitrage",
-        userId: "user_123",
-        agentId: "agent_456",
-        allowedChains: ["ton", "eth"],
+        name: 'Active Strategy',
+        description: 'Will be active',
+        type: 'arbitrage',
+        userId: 'user_123',
+        agentId: 'agent_456',
+        allowedChains: ['ton', 'eth'],
         allowedAssets: [],
         config: {},
         capitalAllocation: {},
@@ -670,12 +648,12 @@ describe("CrossChainStrategyEngine", () => {
       });
 
       await engine.createStrategy({
-        name: "Draft Strategy",
-        description: "Will stay draft",
-        type: "yield_rotation",
-        userId: "user_123",
-        agentId: "agent_789",
-        allowedChains: ["ton", "bnb"],
+        name: 'Draft Strategy',
+        description: 'Will stay draft',
+        type: 'yield_rotation',
+        userId: 'user_123',
+        agentId: 'agent_789',
+        allowedChains: ['ton', 'bnb'],
         allowedAssets: [],
         config: {},
         capitalAllocation: {},
@@ -684,16 +662,16 @@ describe("CrossChainStrategyEngine", () => {
 
       await engine.activateStrategy(strategy1.data!.id);
 
-      const result = await engine.getActiveStrategies("user_123");
+      const result = await engine.getActiveStrategies('user_123');
 
       expect(result.success).toBe(true);
       expect(result.data?.length).toBe(1);
-      expect(result.data?.[0].status).toBe("active");
+      expect(result.data?.[0].status).toBe('active');
     });
   });
 
-  describe("templates", () => {
-    it("should get strategy templates", () => {
+  describe('templates', () => {
+    it('should get strategy templates', () => {
       const templates = engine.getTemplates();
 
       expect(templates.length).toBeGreaterThan(0);
@@ -701,12 +679,12 @@ describe("CrossChainStrategyEngine", () => {
       expect(templates[0].type).toBeDefined();
     });
 
-    it("should create strategy from template", async () => {
+    it('should create strategy from template', async () => {
       const templates = engine.getTemplates();
       const result = await engine.createFromTemplate(
         templates[0].id,
-        "user_123",
-        "agent_456",
+        'user_123',
+        'agent_456'
       );
 
       expect(result.success).toBe(true);
@@ -714,22 +692,22 @@ describe("CrossChainStrategyEngine", () => {
     });
   });
 
-  describe("triggers", () => {
-    it("should check triggers", async () => {
+  describe('triggers', () => {
+    it('should check triggers', async () => {
       const created = await engine.createStrategy({
-        name: "Test Strategy",
-        description: "A test strategy",
-        type: "arbitrage",
-        userId: "user_123",
-        agentId: "agent_456",
-        allowedChains: ["ton", "eth"],
+        name: 'Test Strategy',
+        description: 'A test strategy',
+        type: 'arbitrage',
+        userId: 'user_123',
+        agentId: 'agent_456',
+        allowedChains: ['ton', 'eth'],
         allowedAssets: [],
         config: {
           triggerConditions: [
             {
-              id: "test-trigger",
-              type: "price_threshold",
-              condition: { operator: "gt", value: 50 },
+              id: 'test-trigger',
+              type: 'price_threshold',
+              condition: { operator: 'gt', value: 50 },
               parameters: {},
               priority: 1,
             },
@@ -749,21 +727,21 @@ describe("CrossChainStrategyEngine", () => {
       expect(result.data?.strategyId).toBe(created.data!.id);
     });
 
-    it("should simulate trigger", async () => {
+    it('should simulate trigger', async () => {
       const created = await engine.createStrategy({
-        name: "Test Strategy",
-        description: "A test strategy",
-        type: "arbitrage",
-        userId: "user_123",
-        agentId: "agent_456",
-        allowedChains: ["ton", "eth"],
+        name: 'Test Strategy',
+        description: 'A test strategy',
+        type: 'arbitrage',
+        userId: 'user_123',
+        agentId: 'agent_456',
+        allowedChains: ['ton', 'eth'],
         allowedAssets: [],
         config: {
           triggerConditions: [
             {
-              id: "test-trigger",
-              type: "price_threshold",
-              condition: { operator: "gt", value: 50 },
+              id: 'test-trigger',
+              type: 'price_threshold',
+              condition: { operator: 'gt', value: 50 },
               parameters: {},
               priority: 1,
             },
@@ -777,35 +755,32 @@ describe("CrossChainStrategyEngine", () => {
         riskParameters: {},
       });
 
-      const result = await engine.simulateTrigger(
-        created.data!.id,
-        "test-trigger",
-      );
+      const result = await engine.simulateTrigger(created.data!.id, 'test-trigger');
 
       expect(result.success).toBe(true);
-      expect(result.data?.triggerId).toBe("test-trigger");
+      expect(result.data?.triggerId).toBe('test-trigger');
     });
   });
 
-  describe("performance", () => {
-    it("should get strategy performance", async () => {
+  describe('performance', () => {
+    it('should get strategy performance', async () => {
       const created = await engine.createStrategy({
-        name: "Test Strategy",
-        description: "A test strategy",
-        type: "arbitrage",
-        userId: "user_123",
-        agentId: "agent_456",
-        allowedChains: ["ton", "eth"],
+        name: 'Test Strategy',
+        description: 'A test strategy',
+        type: 'arbitrage',
+        userId: 'user_123',
+        agentId: 'agent_456',
+        allowedChains: ['ton', 'eth'],
         allowedAssets: [],
         config: {},
         capitalAllocation: {},
         riskParameters: {},
       });
 
-      const result = await engine.getPerformance(created.data!.id, "week");
+      const result = await engine.getPerformance(created.data!.id, 'week');
 
       expect(result.success).toBe(true);
-      expect(result.data?.period).toBe("week");
+      expect(result.data?.period).toBe('week');
     });
   });
 });
@@ -814,7 +789,7 @@ describe("CrossChainStrategyEngine", () => {
 // Risk Engine Tests
 // ============================================================================
 
-describe("RiskEngine", () => {
+describe('RiskEngine', () => {
   let engine: DefaultRiskEngine;
 
   beforeEach(() => {
@@ -824,42 +799,42 @@ describe("RiskEngine", () => {
     });
   });
 
-  describe("initialization", () => {
-    it("should create engine with default config", () => {
+  describe('initialization', () => {
+    it('should create engine with default config', () => {
       const defaultEngine = createRiskEngine();
       expect(defaultEngine).toBeInstanceOf(DefaultRiskEngine);
     });
   });
 
-  describe("chain risk profiles", () => {
-    it("should get chain risk profile", async () => {
-      const result = await engine.getChainRiskProfile("ton");
+  describe('chain risk profiles', () => {
+    it('should get chain risk profile', async () => {
+      const result = await engine.getChainRiskProfile('ton');
 
       expect(result.success).toBe(true);
-      expect(result.data?.chainId).toBe("ton");
-      expect(typeof result.data?.overallRiskScore).toBe("number");
+      expect(result.data?.chainId).toBe('ton');
+      expect(typeof result.data?.overallRiskScore).toBe('number');
     });
 
-    it("should create default profile for unknown chain", async () => {
-      const result = await engine.getChainRiskProfile("unknown_chain");
+    it('should create default profile for unknown chain', async () => {
+      const result = await engine.getChainRiskProfile('unknown_chain');
 
       expect(result.success).toBe(true);
-      expect(result.data?.chainId).toBe("unknown_chain");
+      expect(result.data?.chainId).toBe('unknown_chain');
       expect(result.data?.isWhitelisted).toBe(false);
     });
 
-    it("should update chain risk profile", async () => {
-      const result = await engine.updateChainRiskProfile("ton", {
+    it('should update chain risk profile', async () => {
+      const result = await engine.updateChainRiskProfile('ton', {
         overallRiskScore: 2,
       });
 
       expect(result.success).toBe(true);
 
-      const getResult = await engine.getChainRiskProfile("ton");
+      const getResult = await engine.getChainRiskProfile('ton');
       expect(getResult.data?.overallRiskScore).toBe(2);
     });
 
-    it("should get all chain risk profiles", async () => {
+    it('should get all chain risk profiles', async () => {
       const result = await engine.getChainRiskProfiles();
 
       expect(result.success).toBe(true);
@@ -867,18 +842,18 @@ describe("RiskEngine", () => {
     });
   });
 
-  describe("transaction risk assessment", () => {
-    it("should assess transaction risk", async () => {
+  describe('transaction risk assessment', () => {
+    it('should assess transaction risk', async () => {
       const result = await engine.assessTransaction({
-        type: "swap",
-        agentId: "agent_123",
-        userId: "user_456",
-        sourceChain: "ton",
-        destinationChain: "eth",
-        sourceAssetId: "ton",
-        destinationAssetId: "eth",
-        sourceAmount: "100",
-        destinationAddress: "0x123",
+        type: 'swap',
+        agentId: 'agent_123',
+        userId: 'user_456',
+        sourceChain: 'ton',
+        destinationChain: 'eth',
+        sourceAssetId: 'ton',
+        destinationAssetId: 'eth',
+        sourceAmount: '100',
+        destinationAddress: '0x123',
       });
 
       expect(result.success).toBe(true);
@@ -887,44 +862,44 @@ describe("RiskEngine", () => {
       expect(result.data?.factors.length).toBeGreaterThan(0);
     });
 
-    it("should assess higher risk for cross-chain transactions", async () => {
+    it('should assess higher risk for cross-chain transactions', async () => {
       const sameChainResult = await engine.assessTransaction({
-        type: "swap",
-        agentId: "agent_123",
-        userId: "user_456",
-        sourceChain: "ton",
-        destinationChain: "ton",
-        sourceAssetId: "ton",
-        destinationAssetId: "usdt",
-        sourceAmount: "100",
-        destinationAddress: "EQ123",
+        type: 'swap',
+        agentId: 'agent_123',
+        userId: 'user_456',
+        sourceChain: 'ton',
+        destinationChain: 'ton',
+        sourceAssetId: 'ton',
+        destinationAssetId: 'usdt',
+        sourceAmount: '100',
+        destinationAddress: 'EQ123',
       });
 
       const crossChainResult = await engine.assessTransaction({
-        type: "swap",
-        agentId: "agent_123",
-        userId: "user_456",
-        sourceChain: "ton",
-        destinationChain: "eth",
-        sourceAssetId: "ton",
-        destinationAssetId: "eth",
-        sourceAmount: "100",
-        destinationAddress: "0x123",
+        type: 'swap',
+        agentId: 'agent_123',
+        userId: 'user_456',
+        sourceChain: 'ton',
+        destinationChain: 'eth',
+        sourceAssetId: 'ton',
+        destinationAssetId: 'eth',
+        sourceAmount: '100',
+        destinationAddress: '0x123',
       });
 
       // Cross-chain should have higher or equal risk
       expect(crossChainResult.data!.overallRiskScore).toBeGreaterThanOrEqual(
-        sameChainResult.data!.overallRiskScore - 1,
+        sameChainResult.data!.overallRiskScore - 1
       );
     });
   });
 
-  describe("policy management", () => {
-    it("should create policy", async () => {
+  describe('policy management', () => {
+    it('should create policy', async () => {
       const result = await engine.createPolicy({
-        name: "Test Policy",
+        name: 'Test Policy',
         enabled: true,
-        chainWhitelist: ["ton", "eth"],
+        chainWhitelist: ['ton', 'eth'],
         assetWhitelist: [],
         maxTransactionValue: 10000,
         maxDailyVolume: 50000,
@@ -934,14 +909,14 @@ describe("RiskEngine", () => {
       });
 
       expect(result.success).toBe(true);
-      expect(result.data?.name).toBe("Test Policy");
+      expect(result.data?.name).toBe('Test Policy');
     });
 
-    it("should get policy", async () => {
+    it('should get policy', async () => {
       const created = await engine.createPolicy({
-        name: "Test Policy",
+        name: 'Test Policy',
         enabled: true,
-        chainWhitelist: ["ton", "eth"],
+        chainWhitelist: ['ton', 'eth'],
         assetWhitelist: [],
         maxTransactionValue: 10000,
         maxDailyVolume: 50000,
@@ -953,44 +928,44 @@ describe("RiskEngine", () => {
       const result = await engine.getPolicy(created.data!.id);
 
       expect(result.success).toBe(true);
-      expect(result.data?.name).toBe("Test Policy");
+      expect(result.data?.name).toBe('Test Policy');
     });
 
-    it("should list policies", async () => {
+    it('should list policies', async () => {
       const result = await engine.listPolicies();
 
       expect(result.success).toBe(true);
       expect(result.data?.length).toBeGreaterThan(0);
     });
 
-    it("should evaluate policy", async () => {
+    it('should evaluate policy', async () => {
       const result = await engine.evaluatePolicy({
-        type: "swap",
-        agentId: "agent_123",
-        userId: "user_456",
-        sourceChain: "ton",
-        destinationChain: "eth",
-        sourceAssetId: "ton",
-        destinationAssetId: "eth",
-        sourceAmount: "100",
-        destinationAddress: "0x123",
+        type: 'swap',
+        agentId: 'agent_123',
+        userId: 'user_456',
+        sourceChain: 'ton',
+        destinationChain: 'eth',
+        sourceAssetId: 'ton',
+        destinationAssetId: 'eth',
+        sourceAmount: '100',
+        destinationAddress: '0x123',
       });
 
       expect(result.success).toBe(true);
-      expect(typeof result.data?.allowed).toBe("boolean");
+      expect(typeof result.data?.allowed).toBe('boolean');
     });
 
-    it("should detect policy violations", async () => {
+    it('should detect policy violations', async () => {
       const result = await engine.evaluatePolicy({
-        type: "swap",
-        agentId: "agent_123",
-        userId: "user_456",
-        sourceChain: "unknown_chain",
-        destinationChain: "eth",
-        sourceAssetId: "unknown",
-        destinationAssetId: "eth",
-        sourceAmount: "100",
-        destinationAddress: "0x123",
+        type: 'swap',
+        agentId: 'agent_123',
+        userId: 'user_456',
+        sourceChain: 'unknown_chain',
+        destinationChain: 'eth',
+        sourceAssetId: 'unknown',
+        destinationAssetId: 'eth',
+        sourceAmount: '100',
+        destinationAddress: '0x123',
       });
 
       expect(result.success).toBe(true);
@@ -999,52 +974,52 @@ describe("RiskEngine", () => {
     });
   });
 
-  describe("slippage protection", () => {
-    it("should calculate slippage risk", () => {
-      const risk = engine.calculateSlippageRisk("100", "99", 0.99, 1.0);
+  describe('slippage protection', () => {
+    it('should calculate slippage risk', () => {
+      const risk = engine.calculateSlippageRisk('100', '99', 0.99, 1.0);
 
       expect(risk.slippagePercent).toBeCloseTo(1, 1);
-      expect(typeof risk.isAcceptable).toBe("boolean");
+      expect(typeof risk.isAcceptable).toBe('boolean');
       expect(risk.riskLevel).toBeDefined();
     });
 
-    it("should identify high slippage", () => {
-      const risk = engine.calculateSlippageRisk("100", "90", 0.9, 1.0);
+    it('should identify high slippage', () => {
+      const risk = engine.calculateSlippageRisk('100', '90', 0.9, 1.0);
 
       expect(risk.slippagePercent).toBeCloseTo(10, 1);
       expect(risk.isAcceptable).toBe(false);
-      expect(risk.riskLevel).toBe("critical");
+      expect(risk.riskLevel).toBe('critical');
     });
   });
 
-  describe("emergency controls", () => {
-    it("should halt operations", async () => {
-      await engine.emergencyHalt("Test halt");
+  describe('emergency controls', () => {
+    it('should halt operations', async () => {
+      await engine.emergencyHalt('Test halt');
 
       expect(engine.isHalted()).toBe(true);
     });
 
-    it("should resume operations", async () => {
-      await engine.emergencyHalt("Test halt");
+    it('should resume operations', async () => {
+      await engine.emergencyHalt('Test halt');
       await engine.resumeOperations();
 
       expect(engine.isHalted()).toBe(false);
     });
   });
 
-  describe("risk alerts", () => {
-    it("should get risk alerts", async () => {
+  describe('risk alerts', () => {
+    it('should get risk alerts', async () => {
       // Generate some alerts by assessing risky transactions
       await engine.assessTransaction({
-        type: "swap",
-        agentId: "agent_123",
-        userId: "user_456",
-        sourceChain: "ton",
-        destinationChain: "eth",
-        sourceAssetId: "ton",
-        destinationAssetId: "eth",
-        sourceAmount: "100000",
-        destinationAddress: "0x123",
+        type: 'swap',
+        agentId: 'agent_123',
+        userId: 'user_456',
+        sourceChain: 'ton',
+        destinationChain: 'eth',
+        sourceAssetId: 'ton',
+        destinationAssetId: 'eth',
+        sourceAmount: '100000',
+        destinationAddress: '0x123',
         slippageTolerance: 5,
       });
 
@@ -1060,42 +1035,42 @@ describe("RiskEngine", () => {
 // Monitoring Service Tests
 // ============================================================================
 
-describe("MonitoringService", () => {
+describe('MonitoringService', () => {
   let service: DefaultMonitoringService;
 
   beforeEach(() => {
     service = createMonitoringService({
-      logLevel: "info",
+      logLevel: 'info',
       alertsEnabled: true,
     });
   });
 
-  describe("initialization", () => {
-    it("should create service with default config", () => {
+  describe('initialization', () => {
+    it('should create service with default config', () => {
       const defaultService = createMonitoringService();
       expect(defaultService).toBeInstanceOf(DefaultMonitoringService);
     });
   });
 
-  describe("event logging", () => {
-    it("should log events", () => {
+  describe('event logging', () => {
+    it('should log events', () => {
       service.logEvent({
-        type: "transaction_created",
-        source: "test",
-        severity: "info",
-        message: "Test event",
+        type: 'transaction_created',
+        source: 'test',
+        severity: 'info',
+        message: 'Test event',
         data: { test: true },
       });
 
       // No exception thrown means success
     });
 
-    it("should get events", async () => {
+    it('should get events', async () => {
       service.logEvent({
-        type: "transaction_created",
-        source: "test",
-        severity: "info",
-        message: "Test event",
+        type: 'transaction_created',
+        source: 'test',
+        severity: 'info',
+        message: 'Test event',
         data: {},
       });
 
@@ -1105,59 +1080,57 @@ describe("MonitoringService", () => {
       expect(result.data?.length).toBeGreaterThan(0);
     });
 
-    it("should filter events by type", async () => {
+    it('should filter events by type', async () => {
       service.logEvent({
-        type: "transaction_created",
-        source: "test",
-        severity: "info",
-        message: "Created",
+        type: 'transaction_created',
+        source: 'test',
+        severity: 'info',
+        message: 'Created',
         data: {},
       });
 
       service.logEvent({
-        type: "transaction_completed",
-        source: "test",
-        severity: "info",
-        message: "Completed",
+        type: 'transaction_completed',
+        source: 'test',
+        severity: 'info',
+        message: 'Completed',
         data: {},
       });
 
-      const result = await service.getEvents({ type: "transaction_created" });
+      const result = await service.getEvents({ type: 'transaction_created' });
 
       expect(result.success).toBe(true);
-      expect(result.data?.every((e) => e.type === "transaction_created")).toBe(
-        true,
-      );
+      expect(result.data?.every(e => e.type === 'transaction_created')).toBe(true);
     });
   });
 
-  describe("execution logging", () => {
-    it("should start and complete execution", () => {
-      const logId = service.startExecution("tx_123", "validation");
-      expect(typeof logId).toBe("string");
+  describe('execution logging', () => {
+    it('should start and complete execution', () => {
+      const logId = service.startExecution('tx_123', 'validation');
+      expect(typeof logId).toBe('string');
 
       service.completeExecution(logId, true, { validated: true });
     });
 
-    it("should get execution logs", async () => {
-      const logId = service.startExecution("tx_123", "validation");
+    it('should get execution logs', async () => {
+      const logId = service.startExecution('tx_123', 'validation');
       service.completeExecution(logId, true, {});
 
-      const result = await service.getExecutionLogs("tx_123");
+      const result = await service.getExecutionLogs('tx_123');
 
       expect(result.success).toBe(true);
       expect(result.data?.length).toBeGreaterThan(0);
     });
   });
 
-  describe("metrics", () => {
-    it("should record metrics", () => {
-      service.recordMetric("test_metric", 100, { tag: "value" });
+  describe('metrics', () => {
+    it('should record metrics', () => {
+      service.recordMetric('test_metric', 100, { tag: 'value' });
       // No exception thrown means success
     });
 
-    it("should get metrics", async () => {
-      service.recordMetric("test_metric", 100);
+    it('should get metrics', async () => {
+      service.recordMetric('test_metric', 100);
 
       const result = await service.getMetrics();
 
@@ -1166,15 +1139,15 @@ describe("MonitoringService", () => {
     });
   });
 
-  describe("transaction tracking", () => {
-    it("should track transaction", () => {
-      service.trackTransaction("tx_123", "pending", { amount: "100" });
-      service.trackTransaction("tx_123", "completed", {});
+  describe('transaction tracking', () => {
+    it('should track transaction', () => {
+      service.trackTransaction('tx_123', 'pending', { amount: '100' });
+      service.trackTransaction('tx_123', 'completed', {});
     });
 
-    it("should get transaction history", async () => {
-      service.trackTransaction("tx_123", "pending", {});
-      service.trackTransaction("tx_123", "completed", {});
+    it('should get transaction history', async () => {
+      service.trackTransaction('tx_123', 'pending', {});
+      service.trackTransaction('tx_123', 'completed', {});
 
       const result = await service.getTransactionHistory();
 
@@ -1183,25 +1156,25 @@ describe("MonitoringService", () => {
     });
   });
 
-  describe("alerts", () => {
-    it("should create alert", async () => {
+  describe('alerts', () => {
+    it('should create alert', async () => {
       const result = await service.createAlert({
-        severity: "warning",
-        category: "test",
-        title: "Test Alert",
-        message: "This is a test alert",
+        severity: 'warning',
+        category: 'test',
+        title: 'Test Alert',
+        message: 'This is a test alert',
       });
 
       expect(result.success).toBe(true);
-      expect(result.data?.title).toBe("Test Alert");
+      expect(result.data?.title).toBe('Test Alert');
     });
 
-    it("should get alerts", async () => {
+    it('should get alerts', async () => {
       await service.createAlert({
-        severity: "warning",
-        category: "test",
-        title: "Test Alert",
-        message: "This is a test alert",
+        severity: 'warning',
+        category: 'test',
+        title: 'Test Alert',
+        message: 'This is a test alert',
       });
 
       const result = await service.getAlerts();
@@ -1210,12 +1183,12 @@ describe("MonitoringService", () => {
       expect(result.data?.length).toBeGreaterThan(0);
     });
 
-    it("should acknowledge alert", async () => {
+    it('should acknowledge alert', async () => {
       const created = await service.createAlert({
-        severity: "warning",
-        category: "test",
-        title: "Test Alert",
-        message: "This is a test alert",
+        severity: 'warning',
+        category: 'test',
+        title: 'Test Alert',
+        message: 'This is a test alert',
       });
 
       const result = await service.acknowledgeAlert(created.data!.id);
@@ -1223,25 +1196,22 @@ describe("MonitoringService", () => {
       expect(result.success).toBe(true);
     });
 
-    it("should resolve alert", async () => {
+    it('should resolve alert', async () => {
       const created = await service.createAlert({
-        severity: "warning",
-        category: "test",
-        title: "Test Alert",
-        message: "This is a test alert",
+        severity: 'warning',
+        category: 'test',
+        title: 'Test Alert',
+        message: 'This is a test alert',
       });
 
-      const result = await service.resolveAlert(
-        created.data!.id,
-        "Fixed the issue",
-      );
+      const result = await service.resolveAlert(created.data!.id, 'Fixed the issue');
 
       expect(result.success).toBe(true);
     });
   });
 
-  describe("dashboard", () => {
-    it("should get dashboard data", async () => {
+  describe('dashboard', () => {
+    it('should get dashboard data', async () => {
       const result = await service.getDashboardData();
 
       expect(result.success).toBe(true);
@@ -1256,7 +1226,7 @@ describe("MonitoringService", () => {
 // Cost Optimizer Tests
 // ============================================================================
 
-describe("CostOptimizer", () => {
+describe('CostOptimizer', () => {
   let optimizer: DefaultCostOptimizer;
 
   beforeEach(() => {
@@ -1267,46 +1237,46 @@ describe("CostOptimizer", () => {
     });
   });
 
-  describe("initialization", () => {
-    it("should create optimizer with default config", () => {
+  describe('initialization', () => {
+    it('should create optimizer with default config', () => {
       const defaultOptimizer = createCostOptimizer();
       expect(defaultOptimizer).toBeInstanceOf(DefaultCostOptimizer);
     });
   });
 
-  describe("route optimization", () => {
-    it("should find optimal routes", async () => {
+  describe('route optimization', () => {
+    it('should find optimal routes', async () => {
       const result = await optimizer.findOptimalRoute({
-        sourceChain: "ton",
-        destinationChain: "eth",
-        sourceAsset: "ton",
-        destinationAsset: "eth",
-        amount: "100",
+        sourceChain: 'ton',
+        destinationChain: 'eth',
+        sourceAsset: 'ton',
+        destinationAsset: 'eth',
+        amount: '100',
       });
 
       expect(result.success).toBe(true);
       expect(result.data?.length).toBeGreaterThan(0);
     });
 
-    it("should mark recommended route", async () => {
+    it('should mark recommended route', async () => {
       const result = await optimizer.findOptimalRoute({
-        sourceChain: "ton",
-        destinationChain: "eth",
-        sourceAsset: "ton",
-        destinationAsset: "eth",
-        amount: "100",
+        sourceChain: 'ton',
+        destinationChain: 'eth',
+        sourceAsset: 'ton',
+        destinationAsset: 'eth',
+        amount: '100',
       });
 
-      expect(result.data?.some((r) => r.isRecommended)).toBe(true);
+      expect(result.data?.some(r => r.isRecommended)).toBe(true);
     });
 
-    it("should compare routes", async () => {
+    it('should compare routes', async () => {
       const routes = await optimizer.findOptimalRoute({
-        sourceChain: "ton",
-        destinationChain: "eth",
-        sourceAsset: "ton",
-        destinationAsset: "eth",
-        amount: "100",
+        sourceChain: 'ton',
+        destinationChain: 'eth',
+        sourceAsset: 'ton',
+        destinationAsset: 'eth',
+        amount: '100',
       });
 
       const comparison = optimizer.compareRoutes(routes.data!);
@@ -1316,20 +1286,20 @@ describe("CostOptimizer", () => {
     });
   });
 
-  describe("gas optimization", () => {
-    it("should estimate gas", async () => {
+  describe('gas optimization', () => {
+    it('should estimate gas', async () => {
       const result = await optimizer.estimateGas({
-        chainId: "eth",
-        transactionType: "swap",
-        priority: "normal",
+        chainId: 'eth',
+        transactionType: 'swap',
+        priority: 'normal',
       });
 
       expect(result.success).toBe(true);
       expect(result.data?.totalCostUsd).toBeDefined();
     });
 
-    it("should get gas price", async () => {
-      const result = await optimizer.getGasPrice("eth");
+    it('should get gas price', async () => {
+      const result = await optimizer.getGasPrice('eth');
 
       expect(result.success).toBe(true);
       expect(result.data?.slow).toBeDefined();
@@ -1337,26 +1307,26 @@ describe("CostOptimizer", () => {
       expect(result.data?.fast).toBeDefined();
     });
 
-    it("should find optimal gas price", async () => {
-      const result = await optimizer.findOptimalGasPrice("eth");
+    it('should find optimal gas price', async () => {
+      const result = await optimizer.findOptimalGasPrice('eth');
 
       expect(result.success).toBe(true);
       expect(result.data?.recommendation).toBeDefined();
     });
   });
 
-  describe("transaction batching", () => {
-    it("should create batch", async () => {
-      const result = await optimizer.createBatch(["tx_1", "tx_2", "tx_3"]);
+  describe('transaction batching', () => {
+    it('should create batch', async () => {
+      const result = await optimizer.createBatch(['tx_1', 'tx_2', 'tx_3']);
 
       expect(result.success).toBe(true);
       expect(result.data?.transactions.length).toBe(3);
-      expect(result.data?.status).toBe("pending");
+      expect(result.data?.status).toBe('pending');
     });
 
-    it("should add to batch", async () => {
-      const batch = await optimizer.createBatch(["tx_1", "tx_2"]);
-      const result = await optimizer.addToBatch(batch.data!.id, "tx_3");
+    it('should add to batch', async () => {
+      const batch = await optimizer.createBatch(['tx_1', 'tx_2']);
+      const result = await optimizer.addToBatch(batch.data!.id, 'tx_3');
 
       expect(result.success).toBe(true);
 
@@ -1364,17 +1334,17 @@ describe("CostOptimizer", () => {
       expect(getBatch.data?.transactions.length).toBe(3);
     });
 
-    it("should process batch", async () => {
-      const batch = await optimizer.createBatch(["tx_1", "tx_2", "tx_3"]);
+    it('should process batch', async () => {
+      const batch = await optimizer.createBatch(['tx_1', 'tx_2', 'tx_3']);
       const result = await optimizer.processBatch(batch.data!.id);
 
       expect(result.success).toBe(true);
       expect(result.data?.processedCount).toBeGreaterThan(0);
     });
 
-    it("should list batches", async () => {
-      await optimizer.createBatch(["tx_1"]);
-      await optimizer.createBatch(["tx_2"]);
+    it('should list batches', async () => {
+      await optimizer.createBatch(['tx_1']);
+      await optimizer.createBatch(['tx_2']);
 
       const result = await optimizer.listBatches();
 
@@ -1383,50 +1353,50 @@ describe("CostOptimizer", () => {
     });
   });
 
-  describe("fee forecasting", () => {
-    it("should forecast fees", async () => {
-      const result = await optimizer.forecastFees("ton", "eth", 24);
+  describe('fee forecasting', () => {
+    it('should forecast fees', async () => {
+      const result = await optimizer.forecastFees('ton', 'eth', 24);
 
       expect(result.success).toBe(true);
       expect(result.data?.length).toBe(24);
     });
 
-    it("should include trend in forecast", async () => {
-      const result = await optimizer.forecastFees("ton", "eth", 12);
+    it('should include trend in forecast', async () => {
+      const result = await optimizer.forecastFees('ton', 'eth', 12);
 
       expect(result.success).toBe(true);
-      result.data?.forEach((forecast) => {
-        expect(["up", "down", "stable"]).toContain(forecast.trend);
+      result.data?.forEach(forecast => {
+        expect(['up', 'down', 'stable']).toContain(forecast.trend);
       });
     });
   });
 
-  describe("cost analysis", () => {
-    it("should analyze transaction costs", async () => {
-      const result = await optimizer.analyzeCosts("tx_123");
+  describe('cost analysis', () => {
+    it('should analyze transaction costs', async () => {
+      const result = await optimizer.analyzeCosts('tx_123');
 
       expect(result.success).toBe(true);
       expect(result.data?.totalCost).toBeDefined();
       expect(result.data?.breakdown.length).toBeGreaterThan(0);
     });
 
-    it("should provide optimization suggestions", async () => {
-      const result = await optimizer.analyzeCosts("tx_123");
+    it('should provide optimization suggestions', async () => {
+      const result = await optimizer.analyzeCosts('tx_123');
 
       expect(result.success).toBe(true);
       expect(result.data?.optimizationSuggestions).toBeInstanceOf(Array);
     });
   });
 
-  describe("configuration", () => {
-    it("should update config", () => {
+  describe('configuration', () => {
+    it('should update config', () => {
       optimizer.updateConfig({ maxGasPriceGwei: 100 });
       const config = optimizer.getConfig();
 
       expect(config.maxGasPriceGwei).toBe(100);
     });
 
-    it("should get config", () => {
+    it('should get config', () => {
       const config = optimizer.getConfig();
 
       expect(config.enabled).toBeDefined();

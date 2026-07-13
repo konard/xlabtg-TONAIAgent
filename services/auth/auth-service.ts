@@ -192,6 +192,15 @@ export class AuthService {
   check(ctx: AuthContext, action: ApiKeyScope, resourceId?: string): CheckResult {
     const { user } = ctx;
 
+    // An API key can only narrow its owner's role permissions, never widen them.
+    // Enforce the key boundary before privileged role shortcuts.
+    if (ctx.source === 'api_key' && ctx.apiKey) {
+      if (!this.apiKeyService.hasScope(ctx.apiKey, action)) {
+        this.writeAudit(user.id, 'access.denied', action, resourceId, { reason: 'insufficient_scope' });
+        return { allowed: false, reason: 'insufficient_scope' };
+      }
+    }
+
     // Admins can do anything
     if (user.role === 'admin') {
       this.writeAudit(user.id, 'access.granted', action, resourceId);
@@ -202,14 +211,6 @@ export class AuthService {
     if (user.role === 'service') {
       this.writeAudit(user.id, 'access.granted', action, resourceId);
       return { allowed: true };
-    }
-
-    // API key scope check
-    if (ctx.source === 'api_key' && ctx.apiKey) {
-      if (!this.apiKeyService.hasScope(ctx.apiKey, action)) {
-        this.writeAudit(user.id, 'access.denied', action, resourceId, { reason: 'insufficient_scope' });
-        return { allowed: false, reason: 'insufficient_scope' };
-      }
     }
 
     // Role-based check for non-admin users

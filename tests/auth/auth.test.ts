@@ -505,6 +505,23 @@ describe('AuthService', () => {
     expect(result.allowed).toBe(true);
   });
 
+  it.each(['admin', 'service'] as const)(
+    'confines a narrow %s API key to its scopes',
+    role => {
+      const ctx = buildApiKeyCtx(role, ['agent:read']);
+      const result = authService.check(ctx, 'agent:execute');
+
+      expect(result).toEqual({ allowed: false, reason: 'insufficient_scope' });
+      expect(authService.getAuditLog(ctx.userId)).toContainEqual(
+        expect.objectContaining({
+          action: 'access.denied',
+          resource: 'agent:execute',
+          metadata: { reason: 'insufficient_scope' },
+        }),
+      );
+    },
+  );
+
   it('denies API key with insufficient scope even for regular permission', () => {
     const ctx = buildApiKeyCtx('user', ['portfolio:read']);
     const result = authService.check(ctx, 'agent:execute');

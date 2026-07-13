@@ -12,16 +12,15 @@ import { generateCsrfToken } from '../../../../services/api/middleware/csrf.js';
 export async function healthRoutes(app: FastifyInstance): Promise<void> {
   // ── GET /healthz — liveness ─────────────────────────────────────────────────
   //
-  // Also issues a fresh CSRF cookie so unauthenticated pages can make
-  // state-mutating requests.  When CSRF_SECRET is not set (dev mode) the
-  // Set-Cookie header is omitted rather than crashing.
+  // Also issues a fresh CSRF cookie bound to the caller's authenticated
+  // session. When CSRF_SECRET is not set (dev mode) the Set-Cookie header is
+  // omitted rather than crashing.
   //
   app.get('/healthz', async (req: FastifyRequest, reply: FastifyReply) => {
     const csrfSecret = process.env['CSRF_SECRET'];
-    if (csrfSecret) {
-      // Use an empty sessionId for unauthenticated issuance; callers that have
-      // a real session should rotate via their session-creation endpoint.
-      const { cookie } = generateCsrfToken('', csrfSecret);
+    const sessionId = req.headers['x-session-id'];
+    if (csrfSecret && typeof sessionId === 'string' && sessionId.length > 0) {
+      const { cookie } = generateCsrfToken(sessionId, csrfSecret);
       reply.header('Set-Cookie', cookie);
     }
     return reply.code(200).send({ status: 'ok', timestamp: new Date().toISOString() });

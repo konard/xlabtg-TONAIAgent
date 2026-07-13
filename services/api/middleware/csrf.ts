@@ -38,7 +38,7 @@ export interface CsrfTokenResult {
 export interface CsrfVerifyResult {
   valid: boolean;
   /** Human-readable reason when valid === false */
-  reason?: 'missing' | 'malformed' | 'expired' | 'signature_mismatch';
+  reason?: 'missing' | 'malformed' | 'expired' | 'signature_mismatch' | 'session_mismatch';
 }
 
 // ============================================================================
@@ -86,10 +86,12 @@ export function generateCsrfToken(
  *   1. Token is present and structurally valid (4 parts).
  *   2. HMAC signature matches (using constant-time comparison).
  *   3. Token has not expired (TTL: 24 h).
+ *   4. Token belongs to the authenticated session.
  */
 export function verifyCsrfToken(
   token: string | undefined,
   secret: string,
+  expectedSessionId?: string,
 ): CsrfVerifyResult {
   if (!token || token.length === 0) {
     return { valid: false, reason: 'missing' };
@@ -117,6 +119,10 @@ export function verifyCsrfToken(
   }
   if (!timingSafeEqual(expectedBuf, receivedBuf)) {
     return { valid: false, reason: 'signature_mismatch' };
+  }
+
+  if (expectedSessionId !== undefined && !constantTimeEqual(sessionId, expectedSessionId)) {
+    return { valid: false, reason: 'session_mismatch' };
   }
 
   const issuedAt = parseInt(issuedAtStr, 10);
@@ -152,4 +158,12 @@ export function parseCsrfCookie(cookieHeader: string | undefined): string | unde
 
 function sign(payload: string, secret: string): string {
   return createHmac('sha256', secret).update(payload).digest('hex');
+}
+
+/** Compare attacker-controlled strings without content-dependent early exits. */
+export function constantTimeEqual(left: string | undefined, right: string | undefined): boolean {
+  if (left === undefined || right === undefined) return false;
+  const leftDigest = createHmac('sha256', 'csrf-constant-time-compare').update(left).digest();
+  const rightDigest = createHmac('sha256', 'csrf-constant-time-compare').update(right).digest();
+  return timingSafeEqual(leftDigest, rightDigest);
 }

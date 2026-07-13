@@ -18,6 +18,8 @@ import fp from 'fastify-plugin';
 import {
   getSecurityHeaders,
   isBodySizeAllowed,
+  constantTimeEqual,
+  parseCsrfCookie,
   verifyCsrfToken,
   withTimeout,
   RequestTimeoutError,
@@ -129,7 +131,7 @@ async function middlewareChainPlugin(app: FastifyInstance): Promise<void> {
   // Double-submit cookie pattern:
   //   1. Client reads csrf_token cookie (HttpOnly=false) issued by GET /healthz.
   //   2. Client echoes cookie value in X-CSRF-Token request header.
-  //   3. Server verifies: header present, HMAC signature valid, not expired.
+  //   3. Server verifies: header === cookie, HMAC, TTL, and session binding.
   //
   app.addHook('preHandler', async (req: FastifyRequest, reply: FastifyReply) => {
     if (SAFE_METHODS.has(req.method.toUpperCase())) return;
@@ -151,13 +153,33 @@ async function middlewareChainPlugin(app: FastifyInstance): Promise<void> {
     }
 
     const csrfHeader = req.headers['x-csrf-token'] as string | undefined;
-    const result = verifyCsrfToken(csrfHeader, csrfSecret);
+    const csrfCookie = parseCsrfCookie(req.headers.cookie);
+    const sessionId = req.headers['x-session-id'] as string | undefined;
+
+    if (!sessionId) {
+      return reply.code(403).send({
+        success: false,
+        error: 'Missing authenticated session',
+        code: 'CSRF_INVALID',
+      });
+    }
+
+    if (!constantTimeEqual(csrfHeader, csrfCookie)) {
+      return reply.code(403).send({
+        success: false,
+        error: 'CSRF header does not match cookie',
+        code: 'CSRF_INVALID',
+      });
+    }
+
+    const result = verifyCsrfToken(csrfHeader, csrfSecret, sessionId);
     if (!result.valid) {
       const messages: Record<string, string> = {
         missing: 'Missing x-csrf-token header',
         malformed: 'Malformed CSRF token',
         expired: 'Expired CSRF token',
         signature_mismatch: 'Invalid CSRF token',
+        session_mismatch: 'CSRF token belongs to another session',
       };
       return reply.code(403).send({
         success: false,

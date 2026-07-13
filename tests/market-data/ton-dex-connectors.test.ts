@@ -246,6 +246,43 @@ describe('DedustProvider', () => {
     const healthy = await provider.healthCheck();
     expect(typeof healthy).toBe('boolean');
   });
+
+  it('uses the live TON/USD price for a TON-quoted pool', async () => {
+    const tonUsdPriceProvider = {
+      getPrice: vi.fn().mockResolvedValue({ price: 3.25 }),
+    };
+    const provider = new DedustProvider({}, tonUsdPriceProvider);
+    vi.spyOn(provider, 'getPools').mockResolvedValue([
+      {
+        ...makeMockPool('dedust', 'NOT', 'TON'),
+        reserve0: '1000000000000',
+        reserve1: '500000000000',
+      },
+    ]);
+
+    const quote = await provider.getPrice('NOT');
+
+    expect(tonUsdPriceProvider.getPrice).toHaveBeenCalledWith('TON');
+    expect(quote.priceUsd).toBe(1.625);
+  });
+
+  it('does not fabricate a USD price when the TON/USD source is unavailable', async () => {
+    const tonUsdPriceProvider = {
+      getPrice: vi.fn().mockRejectedValue(new Error('price source unavailable')),
+    };
+    const provider = new DedustProvider({ maxRetries: 0 }, tonUsdPriceProvider);
+    vi.spyOn(provider, 'getPools').mockResolvedValue([
+      {
+        ...makeMockPool('dedust', 'NOT', 'TON'),
+        reserve0: '1000000000000',
+        reserve1: '500000000000',
+      },
+    ]);
+
+    await expect(provider.getPrice('NOT')).rejects.toMatchObject({
+      code: 'INSUFFICIENT_LIQUIDITY',
+    });
+  });
 });
 
 // ============================================================================

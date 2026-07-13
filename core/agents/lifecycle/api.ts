@@ -158,7 +158,7 @@ export class LifecycleOrchestratorApi {
       // POST /lifecycle/agents/:agentId/jobs/:jobId/execute — Execute job
       const executeJobMatch = this.matchParam(path, '/lifecycle/agents/:agentId/jobs/:jobId/execute');
       if (method === 'POST' && executeJobMatch) {
-        return await this.handleExecuteJob(executeJobMatch.agentId, executeJobMatch.jobId);
+        return await this.handleExecuteJob(executeJobMatch.agentId, executeJobMatch.jobId, req);
       }
 
       // POST /lifecycle/agents/:agentId/jobs — Schedule job
@@ -325,8 +325,13 @@ export class LifecycleOrchestratorApi {
     return this.success(201, job);
   }
 
-  private async handleExecuteJob(agentId: string, jobId: string): Promise<LifecycleApiResponse> {
-    await this.orchestrator.executeJob(agentId, jobId);
+  private async handleExecuteJob(
+    agentId: string,
+    jobId: string,
+    req: LifecycleApiRequest,
+  ): Promise<LifecycleApiResponse> {
+    const body = req.body as { success?: boolean } | undefined;
+    await this.orchestrator.executeJob(agentId, jobId, { success: body?.success ?? true });
     return this.success(200, { executed: true, agentId, jobId });
   }
 

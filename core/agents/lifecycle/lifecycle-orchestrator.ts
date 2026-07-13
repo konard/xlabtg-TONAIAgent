@@ -46,6 +46,7 @@ import type {
   LifecycleOrchestratorMetrics,
   LifecycleState,
   LifecycleUnsubscribe,
+  JobExecutionResult,
   MigrationRecord,
   MigrationType,
   PermissionScope,
@@ -169,16 +170,18 @@ function computeNextCronExecution(expression: string): Date {
 }
 
 function buildEmptyMetrics(agentId: string): AgentPerformanceMetrics {
+  const now = new Date();
   return {
     agentId,
     uptimePercent: 0,
     avgExecutionLatencyMs: 0,
     executionsLastHour: 0,
     failedExecutionsLastHour: 0,
+    hourlyWindowStartedAt: now,
     strategyPnlUsd: 0,
     totalTransactions: 0,
     lastExecutionAt: null,
-    snapshotAt: new Date(),
+    snapshotAt: now,
   };
 }
 
@@ -520,7 +523,11 @@ export class LifecycleOrchestrator {
    * In production this would invoke the actual agent strategy execution.
    * Here we simulate success/failure based on the agent's current health.
    */
-  async executeJob(agentId: string, jobId: string): Promise<void> {
+  async executeJob(
+    agentId: string,
+    jobId: string,
+    result: JobExecutionResult = { success: true },
+  ): Promise<void> {
     const record = this.requireAgent(agentId);
     const job = record.scheduledJobs.find((j) => j.jobId === jobId);
 
@@ -542,29 +549,43 @@ export class LifecycleOrchestrator {
 
     const executionStart = Date.now();
 
-    // Simulate a brief execution
-    await new Promise<void>((resolve) => setTimeout(resolve, 1));
-
     const latencyMs = Date.now() - executionStart;
     const now = new Date();
 
     // Update job stats
     job.executionCount += 1;
+    if (!result.success) job.failureCount += 1;
     job.lastExecutedAt = now;
     job.nextExecutionAt = this.computeNextExecution(job.schedule);
 
     // Update agent metrics
     const metrics = record.cumulativeMetrics;
-    const prevTotal = metrics.totalTransactions;
-    metrics.totalTransactions = prevTotal + 1;
+    if (now.getTime() - metrics.hourlyWindowStartedAt.getTime() >= 3_600_000) {
+      metrics.executionsLastHour = 0;
+      metrics.failedExecutionsLastHour = 0;
+      metrics.hourlyWindowStartedAt = now;
+    }
+    const prevSuccessfulTotal = metrics.totalTransactions;
     metrics.executionsLastHour = (metrics.executionsLastHour ?? 0) + 1;
-    metrics.avgExecutionLatencyMs =
-      prevTotal === 0
-        ? latencyMs
-        : Math.round((metrics.avgExecutionLatencyMs * prevTotal + latencyMs) / (prevTotal + 1));
+    if (!result.success) {
+      metrics.failedExecutionsLastHour = (metrics.failedExecutionsLastHour ?? 0) + 1;
+    } else {
+      metrics.totalTransactions = prevSuccessfulTotal + 1;
+      metrics.avgExecutionLatencyMs =
+        prevSuccessfulTotal === 0
+          ? latencyMs
+          : Math.round(
+            (metrics.avgExecutionLatencyMs * prevSuccessfulTotal + latencyMs) /
+            (prevSuccessfulTotal + 1),
+          );
+      metrics.uptimePercent = Math.min(100, metrics.uptimePercent + 0.01);
+    }
     metrics.lastExecutionAt = now;
-    metrics.uptimePercent = Math.min(100, metrics.uptimePercent + 0.01);
     metrics.snapshotAt = now;
+    if (result.success && record.runtimeAllocation) {
+      record.runtimeAllocation.lastHeartbeatAt = now;
+      record.runtimeAllocation.healthy = true;
+    }
 
     record.updatedAt = now;
     this.totalExecutions += 1;
@@ -574,7 +595,7 @@ export class LifecycleOrchestrator {
       timestamp: now,
       agentId,
       userId: record.userId,
-      data: { jobId, executionCount: job.executionCount, latencyMs },
+      data: { jobId, executionCount: job.executionCount, latencyMs, success: result.success },
     });
   }
 
@@ -667,8 +688,8 @@ export class LifecycleOrchestrator {
       });
     }
 
-    const heartbeatAge = record.runtimeAllocation?.lastHeartbeatAt
-      ? Date.now() - record.runtimeAllocation.lastHeartbeatAt.getTime()
+    const heartbeatAge = record.runtimeAllocation
+      ? Date.now() - (record.runtimeAllocation.lastHeartbeatAt ?? record.runtimeAllocation.allocatedAt).getTime()
       : null;
 
     if (heartbeatAge !== null && heartbeatAge > this.config.heartbeatTimeoutMs) {
@@ -760,7 +781,8 @@ export class LifecycleOrchestrator {
       });
     } else if (
       this.config.autoPauseRiskThreshold > 0 &&
-      riskScore >= this.config.autoPauseRiskThreshold &&
+      (riskScore >= this.config.autoPauseRiskThreshold ||
+        anomalies.some((anomaly) => anomaly.recommendation === 'auto_pause')) &&
       record.state === 'running' &&
       this.config.alerting.autoPauseOnCritical
     ) {
@@ -768,7 +790,7 @@ export class LifecycleOrchestrator {
         agentId,
         targetState: 'paused',
         requestedBy: 'lifecycle-orchestrator',
-        reason: `Auto-paused: risk score ${riskScore} >= threshold ${this.config.autoPauseRiskThreshold}`,
+        reason: `Auto-paused: health check recommended intervention (risk score ${riskScore}, threshold ${this.config.autoPauseRiskThreshold})`,
         automated: true,
       });
 

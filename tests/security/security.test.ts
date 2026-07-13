@@ -785,41 +785,93 @@ describe('Transaction Authorization', () => {
     });
   });
 
-  describe('Authorization Caching (cacheDecisionSeconds)', () => {
-    it('should return cached result on identical request', async () => {
-      const request = createMockTransactionRequest({ id: 'tx_cache_test' });
-      const engineWithCache = createAuthorizationEngine({ cacheDecisionSeconds: 60 });
+  describe('Authorization Decision Lifetime (cacheDecisionSeconds)', () => {
+    it('should rate-limit identical authorization requests instead of replaying a cached approval', async () => {
+      const request = createMockTransactionRequest({ id: 'tx_replay_test' });
+      const engineWithCache = createAuthorizationEngine({
+        enabledLayers: ['limit_check', 'rate_limit'],
+        cacheDecisionSeconds: 60,
+      });
 
       const firstResult = await engineWithCache.authorize(request, {});
-      const secondResult = await engineWithCache.authorize(request, {});
+      const subsequentResults = [];
+      for (let i = 0; i < 10; i++) {
+        subsequentResults.push(await engineWithCache.authorize(request, {}));
+      }
 
-      // Both results should have the same decision
-      expect(secondResult.decision).toBe(firstResult.decision);
-      // The cached result should be identical (same object id)
-      expect(secondResult.id).toBe(firstResult.id);
+      expect(firstResult.decision).toBe('approved');
+      expect(subsequentResults[0].id).not.toBe(firstResult.id);
+      expect(subsequentResults[0].checkedLayers.map((layer) => layer.layer)).toEqual([
+        'limit_check',
+        'rate_limit',
+      ]);
+      expect(subsequentResults.at(-1)?.decision).toBe('rejected');
+      expect(subsequentResults.at(-1)?.checkedLayers.at(-1)).toMatchObject({
+        layer: 'rate_limit',
+        passed: false,
+      });
     });
 
-    it('should not use cache when cacheDecisionSeconds is 0', async () => {
+    it('should re-check daily spending for an identical authorization request', async () => {
+      const request = createMockTransactionRequest({
+        id: 'tx_daily_limit_replay_test',
+        amount: { token: 'TON', symbol: 'TON', amount: '10', decimals: 9, valueTon: 10 },
+      });
+      const engineWithCache = createAuthorizationEngine({
+        enabledLayers: ['limit_check'],
+        cacheDecisionSeconds: 60,
+      });
+      const initialLimits = {
+        userId: request.userId,
+        dailyTransactionLimit: 100,
+        weeklyTransactionLimit: 500,
+        monthlyTransactionLimit: 2_000,
+        singleTransactionLimit: 100,
+        largeTransactionThreshold: 50,
+        usedToday: 0,
+        usedThisWeek: 0,
+        usedThisMonth: 0,
+        lastReset: new Date(),
+      };
+
+      const firstResult = await engineWithCache.authorize(request, { userLimits: initialLimits });
+      const secondResult = await engineWithCache.authorize(request, {
+        userLimits: {
+          ...initialLimits,
+          usedToday: 95,
+          usedThisWeek: 95,
+          usedThisMonth: 95,
+        },
+      });
+
+      expect(firstResult.decision).toBe('approved');
+      expect(secondResult.decision).toBe('rejected');
+      expect(secondResult.checkedLayers[0]).toMatchObject({
+        layer: 'limit_check',
+        passed: false,
+      });
+      expect(secondResult.checkedLayers[0]?.reason).toContain('daily limit');
+    });
+
+    it('should produce a fresh result when cacheDecisionSeconds is 0', async () => {
       const request = createMockTransactionRequest({ id: 'tx_nocache_test' });
       const engineNoCache = createAuthorizationEngine({ cacheDecisionSeconds: 0 });
 
       const firstResult = await engineNoCache.authorize(request, {});
       const secondResult = await engineNoCache.authorize(request, {});
 
-      // Results should have different ids when cache is disabled
+      // Every authorization is evaluated independently.
       expect(secondResult.id).not.toBe(firstResult.id);
     });
 
-    it('should clear cache when config is updated', async () => {
+    it('should produce a fresh result after config is updated', async () => {
       const request = createMockTransactionRequest({ id: 'tx_config_change_test' });
       const engineWithCache = createAuthorizationEngine({ cacheDecisionSeconds: 60 });
 
       const firstResult = await engineWithCache.authorize(request, {});
-      // Changing config should clear cache
       engineWithCache.setConfig({ cacheDecisionSeconds: 30 });
       const secondResult = await engineWithCache.authorize(request, {});
 
-      // After config change cache was cleared, new result should have a new id
       expect(secondResult.id).not.toBe(firstResult.id);
     });
 

@@ -5,7 +5,7 @@
 **Stage:** Stage 5 — Strategy / backtest / optimizer integrity
 **Suggested labels:** `bug`, `reliability`, `severity:low`, `area:strategy`, `stage:5-strategy-integrity`, `audit:logic-review-v3`
 **Location:** `core/multi-agent/resources/capital-manager.ts:348-353` (default at `:49`)
-**Filed as:** _ready to file_
+**Filed as:** [#514](https://github.com/xlabtg/TONAIAgent/issues/514)
 
 ## Problem
 The skip guard `if (utilizationRatio < pool.limits.rebalanceThreshold) return;` uses a default `rebalanceThreshold` of `0.1`. Any pool utilized above 10% (essentially all active pools) fails the "underutilized" test and proceeds to trim allocations by 20%. The threshold value and comparison semantics are inverted relative to a "rebalance only when heavily utilized" intent.

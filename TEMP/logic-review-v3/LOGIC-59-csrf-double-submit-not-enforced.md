@@ -5,7 +5,7 @@
 **Stage:** Stage 1 — Access control & safety re-wiring
 **Suggested labels:** `bug`, `security`, `severity:medium`, `area:security`, `stage:1-access-control`, `audit:logic-review-v3`
 **Location:** `apps/api/src/middleware/chain.ts:128-168; services/api/middleware/csrf.ts:90-128`
-**Filed as:** _ready to file_
+**Filed as:** [#507](https://github.com/xlabtg/TONAIAgent/issues/507)
 
 ## Problem
 The CSRF check validates only the HMAC and 24h TTL of the `X-CSRF-Token` header via `verifyCsrfToken`; it never reads the `csrf_token` cookie (`parseCsrfCookie` is unused in the request path) and never compares the token's embedded `sessionId` to the authenticated user. Tokens are issued freely (even on unauthenticated GETs) with a 24h TTL and no per-user binding.

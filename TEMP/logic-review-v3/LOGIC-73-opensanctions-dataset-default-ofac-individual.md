@@ -5,7 +5,7 @@
 **Stage:** Stage 4 — Market data & connector integrity
 **Suggested labels:** `bug`, `data`, `severity:low`, `area:regulatory`, `stage:4-connector-integrity`, `audit:logic-review-v3`
 **Location:** `services/regulatory/providers/opensanctions.ts:72-77, 179`
-**Filed as:** _ready to file_
+**Filed as:** [#521](https://github.com/xlabtg/TONAIAgent/issues/521)
 
 ## Problem
 `datasetToList` returns `'ofac_sdn'` for any unmapped dataset, and each mapped match sets `entityType: 'individual' as const` regardless of the real schema.

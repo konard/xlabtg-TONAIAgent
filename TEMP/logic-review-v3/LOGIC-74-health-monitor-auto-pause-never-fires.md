@@ -5,7 +5,7 @@
 **Stage:** Stage 1 — Access control & safety re-wiring
 **Suggested labels:** `bug`, `reliability`, `severity:high`, `area:runtime`, `stage:1-access-control`, `audit:logic-review-v3`
 **Location:** `core/agents/lifecycle/lifecycle-orchestrator.ts:640-782` (init `:176-177`, executeJob `:560`, heartbeat init `:1155`)
-**Filed as:** _ready to file_
+**Filed as:** [#522](https://github.com/xlabtg/TONAIAgent/issues/522)
 
 ## Problem
 `runHealthCheck` derives `riskScore` from three anomalies, but the two anomalies carrying the `auto_pause` recommendation and the largest weights can never trigger:

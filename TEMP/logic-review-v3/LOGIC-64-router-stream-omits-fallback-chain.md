@@ -5,7 +5,7 @@
 **Stage:** Stage 5 — Strategy / backtest / optimizer integrity
 **Suggested labels:** `bug`, `reliability`, `severity:medium`, `area:ai`, `stage:5-strategy-integrity`, `audit:logic-review-v3`
 **Location:** `core/ai/routing/router.ts:611-615` (vs `execute()` `:517-539`)
-**Filed as:** _ready to file_
+**Filed as:** [#512](https://github.com/xlabtg/TONAIAgent/issues/512)
 
 ## Problem
 `execute()` builds its provider chain from `decision.provider` + `decision.alternatives` and then appends the configured `this.config.fallbackChain` providers. `stream()` builds its chain only from `decision.provider` + `decision.alternatives` and never appends `fallbackChain`, so streaming requests get a strictly shorter resilience chain.

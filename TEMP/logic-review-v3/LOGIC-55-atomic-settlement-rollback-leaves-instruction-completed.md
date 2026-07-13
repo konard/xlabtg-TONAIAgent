@@ -5,7 +5,7 @@
 **Stage:** Stage 2 — Funds & accounting correctness
 **Suggested labels:** `bug`, `financial`, `severity:medium`, `area:financial`, `stage:2-funds-accounting`, `audit:logic-review-v3`
 **Location:** `services/clearing-house/settlement.ts:446-461`
-**Filed as:** _ready to file_
+**Filed as:** [#503](https://github.com/xlabtg/TONAIAgent/issues/503)
 
 ## Problem
 On a failed `allOrNothing` atomic settlement the rollback sets each completed `leg.status = 'cancelled'` but never touches `leg.instruction.status`; the same `SettlementInstruction` object remains `'completed'` in `this.settlements`, which is what metrics aggregate. The leg-level cancellation is invisible to reporting because metrics read the instruction status, not the leg status.

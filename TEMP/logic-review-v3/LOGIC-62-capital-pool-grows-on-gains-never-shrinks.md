@@ -5,7 +5,7 @@
 **Stage:** Stage 2 — Funds & accounting correctness
 **Suggested labels:** `bug`, `financial`, `severity:high`, `area:strategy`, `stage:2-funds-accounting`, `audit:logic-review-v3`
 **Location:** `core/multi-agent/resources/capital-manager.ts:215-240`
-**Filed as:** _ready to file_
+**Filed as:** [#510](https://github.com/xlabtg/TONAIAgent/issues/510)
 
 ## Problem
 `updatePerformance` applies pnl to pool capital only inside `if (pnl > 0)`. Losses update `allocation.performance` (which can go negative) but never decrement `pool.totalCapital` / `pool.availableCapital`. As a result, pool capital only ever ratchets upward and never reflects realized losses.

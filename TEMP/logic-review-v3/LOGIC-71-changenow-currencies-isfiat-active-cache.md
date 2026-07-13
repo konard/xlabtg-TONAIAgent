@@ -5,7 +5,7 @@
 **Stage:** Stage 4 — Market data & connector integrity
 **Suggested labels:** `bug`, `data`, `severity:medium`, `area:connectors`, `stage:4-connector-integrity`, `audit:logic-review-v3`
 **Location:** `services/omnichain/changenow-client.ts:144-168`
-**Filed as:** _ready to file_
+**Filed as:** [#519](https://github.com/xlabtg/TONAIAgent/issues/519)
 
 ## Problem
 On a cache hit it returns `active ? currencies.filter(c => !c.isFiat) : currencies`, using `!isFiat` as a stand-in for active; but the cache is populated by whichever `active` value was first requested (the API is called with `active=String(active)`), so the served set does not match the requested activeness.

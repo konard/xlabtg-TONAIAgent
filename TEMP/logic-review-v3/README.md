@@ -17,6 +17,14 @@ Every finding was confirmed by reading the actual source at the stated path/line
 verified signatures), and a `services/.../emergency.ts` social-recovery candidate was dropped because the
 missing-branch path fails *closed* (recovery is harder to trigger, not easier).
 
+## Filed on GitHub
+
+By request of the maintainer (see [PR #497](https://github.com/xlabtg/TONAIAgent/pull/497)), all 27 findings
+are now filed as individual professional issues **[#500–#526](https://github.com/xlabtg/TONAIAgent/issues/500)**
+(LOGIC-52 → #500 … LOGIC-78 → #526). The severity, area, implementation stage, and suggested labels are embedded
+in each issue body — GitHub labels themselves could not be applied because the audit account has pull-only access.
+The machine-readable mapping (`id` → `githubIssue`) is in [`issues.json`](./issues.json).
+
 ## Severity summary
 
 | Severity | Count |

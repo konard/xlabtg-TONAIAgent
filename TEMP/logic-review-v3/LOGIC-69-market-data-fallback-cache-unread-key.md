@@ -5,7 +5,7 @@
 **Stage:** Stage 4 — Market data & connector integrity
 **Suggested labels:** `bug`, `reliability`, `severity:medium`, `area:market-data`, `stage:4-connector-integrity`, `audit:logic-review-v3`
 **Location:** `core/market-data/base/service.ts:159-217` (same defect in getTicker ~:229-276)
-**Filed as:** _ready to file_
+**Filed as:** [#517](https://github.com/xlabtg/TONAIAgent/issues/517)
 
 ## Problem
 Reads check `price:${primaryProvider}:${asset}` but a successful fallback fetch is stored under `price:${fallbackName}:${asset}` — a key no read path ever checks. The fallback result is cached under a key that is never consulted, so it can never produce a cache hit.

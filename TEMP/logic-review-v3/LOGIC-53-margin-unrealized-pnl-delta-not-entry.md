@@ -5,7 +5,7 @@
 **Stage:** Stage 2 — Funds & accounting correctness
 **Suggested labels:** `bug`, `financial`, `severity:high`, `area:financial`, `stage:2-funds-accounting`, `audit:logic-review-v3`
 **Location:** `services/prime-brokerage/margin-leverage.ts:343-352`
-**Filed as:** _ready to file_
+**Filed as:** [#501](https://github.com/xlabtg/TONAIAgent/issues/501)
 
 ## Problem
 `updatePositionPrice` sets `priceDiff = currentPrice - position.currentPrice` (the delta since the LAST update) then overwrites `position.currentPrice`, so `unrealizedPnL` reflects only the change since the previous tick, not cumulative PnL from `entryPrice`. Because `position.currentPrice` is mutated on every tick, each recomputation loses the prior movement. Liquidation later reads this field for `realizedLoss` and remaining equity.

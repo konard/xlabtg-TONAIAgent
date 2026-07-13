@@ -5,7 +5,7 @@
 **Stage:** Stage 5 — Strategy / backtest / optimizer integrity
 **Suggested labels:** `bug`, `reliability`, `severity:medium`, `area:strategy`, `stage:5-strategy-integrity`, `audit:logic-review-v3`
 **Location:** `core/strategies/engine/backtesting.ts:893-900` (contrast the guarded daily-returns CVaR at `:815-817`)
-**Filed as:** _ready to file_
+**Filed as:** [#513](https://github.com/xlabtg/TONAIAgent/issues/513)
 
 ## Problem
 In `runMonteCarlo`, `cvarIndex = Math.floor(distribution.length * (1 - confidenceLevel))`, and the CVaR mean is `distribution.slice(0, cvarIndex).reduce(...) / cvarIndex` with no `cvarIndex > 0` guard. When `cvarIndex` is 0 this divides 0 by 0.

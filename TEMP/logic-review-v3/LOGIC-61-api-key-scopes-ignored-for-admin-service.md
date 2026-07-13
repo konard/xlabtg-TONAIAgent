@@ -5,7 +5,7 @@
 **Stage:** Stage 1 — Access control & safety re-wiring
 **Suggested labels:** `bug`, `security`, `severity:medium`, `area:security`, `stage:1-access-control`, `audit:logic-review-v3`
 **Location:** `services/auth/auth-service.ts:192-213`
-**Filed as:** _ready to file_
+**Filed as:** [#509](https://github.com/xlabtg/TONAIAgent/issues/509)
 
 ## Problem
 `check()` returns `{ allowed: true }` for `role === 'admin'` and `role === 'service'` before the API-key scope gate, so a deliberately narrow key minted by an admin/service user still passes any action check.

@@ -5,7 +5,7 @@
 **Stage:** Stage 2 — Funds & accounting correctness
 **Suggested labels:** `bug`, `financial`, `severity:low`, `area:financial`, `stage:2-funds-accounting`, `audit:logic-review-v3`
 **Location:** `extended/tokenomics/staking.ts:467-494`
-**Filed as:** _ready to file_
+**Filed as:** [#504](https://github.com/xlabtg/TONAIAgent/issues/504)
 
 ## Problem
 `compoundRewards` folds `pendingRewards` into principal (`stake.amount`) and simultaneously adds the same amount to `stake.claimedRewards`, so the rewards are counted both as future-earning principal and as lifetime claimed payouts. The returned `amount` is `position.pendingRewards` (the sum across ALL stakes) even though non-`autoCompound` stakes were skipped by the loop.

@@ -5,7 +5,7 @@
 **Stage:** Stage 5 — Strategy / backtest / optimizer integrity
 **Suggested labels:** `bug`, `reliability`, `severity:low`, `area:multi-agent`, `stage:5-strategy-integrity`, `audit:logic-review-v3`
 **Location:** `core/multi-agent/delegation/task-queue.ts:476-490`
-**Filed as:** _ready to file_
+**Filed as:** [#515](https://github.com/xlabtg/TONAIAgent/issues/515)
 
 ## Problem
 On failure with retries remaining, `failDelegation` increments `retryCount`, sets `status` to `'pending'`, clears `assigneeId`, and emits `'delegation_retry'` — then deletes the delegation record. It never creates a new delegation or re-enqueues the task for execution, so the "retry" only mutates flags.

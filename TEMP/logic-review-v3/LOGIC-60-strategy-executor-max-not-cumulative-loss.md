@@ -5,7 +5,7 @@
 **Stage:** Stage 1 — Access control & safety re-wiring
 **Suggested labels:** `bug`, `security`, `severity:medium`, `area:contracts`, `stage:1-access-control`, `audit:logic-review-v3`
 **Location:** `contracts/strategy-executor.tact:341-351`
-**Filed as:** _ready to file_
+**Filed as:** [#508](https://github.com/xlabtg/TONAIAgent/issues/508)
 
 ## Problem
 On a losing outcome the contract sets `cumulativeLossNano = max(prev, actualLoss)` rather than summing, so the field named "cumulative" only ever holds the single worst loss and the `>= maxLossNano` auto-stop compares against that maximum.

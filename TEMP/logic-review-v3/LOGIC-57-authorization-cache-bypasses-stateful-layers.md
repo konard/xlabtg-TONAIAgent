@@ -5,7 +5,7 @@
 **Stage:** Stage 1 — Access control & safety re-wiring
 **Suggested labels:** `bug`, `security`, `severity:high`, `area:security`, `stage:1-access-control`, `audit:logic-review-v3`
 **Location:** `core/security/authorization.ts:761-771, 960-971`
-**Filed as:** _ready to file_
+**Filed as:** [#505](https://github.com/xlabtg/TONAIAgent/issues/505)
 
 ## Problem
 `authorize()` returns a cached prior decision for `cacheDecisionSeconds` (default 60s) before running any layer. The cache key (`buildCacheKey`) is built only from `{type, source, destination, token, amount, agentId, userId, layers}` and omits `usedToday`, rate-limit/session state and `riskContext`, so identical fund-moving requests all hit the cache after the first and skip every stateful layer.

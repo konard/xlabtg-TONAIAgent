@@ -5,7 +5,7 @@
 **Stage:** Stage 2 — Funds & accounting correctness
 **Suggested labels:** `bug`, `financial`, `severity:high`, `area:financial`, `stage:2-funds-accounting`, `audit:logic-review-v3`
 **Location:** `services/payments/payment-gateway.ts:755-784`
-**Filed as:** _ready to file_
+**Filed as:** [#500](https://github.com/xlabtg/TONAIAgent/issues/500)
 
 ## Problem
 `releaseEscrow()` guards on `payment.escrow.releaseConditions.length > 0` then calls `evaluateConditions(paymentId)`, but `evaluateConditions` inspects `payment.conditions` — a different field. `createEscrowPayment` only populates `payment.escrow.releaseConditions`, never `payment.conditions`, so `evaluateConditions` hits the empty-array early return and yields `allConditionsMet: true` unconditionally. The release guard is therefore effectively dead: it passes even when no configured release condition has been met.

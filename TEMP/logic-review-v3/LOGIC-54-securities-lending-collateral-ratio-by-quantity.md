@@ -5,7 +5,7 @@
 **Stage:** Stage 2 — Funds & accounting correctness
 **Suggested labels:** `bug`, `financial`, `severity:high`, `area:financial`, `stage:2-funds-accounting`, `audit:logic-review-v3`
 **Location:** `services/prime-brokerage/securities-lending.ts:344-352`
-**Filed as:** _ready to file_
+**Filed as:** [#502](https://github.com/xlabtg/TONAIAgent/issues/502)
 
 ## Problem
 The collateralization check computes `collRatio = collateralValue / params.quantity`, dividing a USD value by a bare token count, while the same module values the loan at `quantity * 100` (a unit price) when accruing interest. The check therefore requires collateral of only `minCollateralizationRatio * quantity` USD against a loan worth roughly `100 * quantity` USD — off by the unit price factor.

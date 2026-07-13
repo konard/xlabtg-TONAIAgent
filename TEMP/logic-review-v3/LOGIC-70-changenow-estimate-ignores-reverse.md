@@ -5,7 +5,7 @@
 **Stage:** Stage 4 — Market data & connector integrity
 **Suggested labels:** `bug`, `financial`, `severity:medium`, `area:connectors`, `stage:4-connector-integrity`, `audit:logic-review-v3`
 **Location:** `services/omnichain/changenow-client.ts:284-345`
-**Filed as:** _ready to file_
+**Filed as:** [#518](https://github.com/xlabtg/TONAIAgent/issues/518)
 
 ## Problem
 The `_type: 'direct' | 'reverse'` parameter is never referenced; the method always builds the direct `exchange-amount` endpoint, so a reverse quote is computed as if `amount` were the send amount.

@@ -5,7 +5,7 @@
 **Stage:** Stage 1 — Access control & safety re-wiring
 **Suggested labels:** `bug`, `security`, `severity:high`, `area:regulatory`, `stage:1-access-control`, `audit:logic-review-v3`
 **Location:** `services/regulatory/providers/opensanctions.ts:93, 141-162, 180`
-**Filed as:** _ready to file_
+**Filed as:** [#506](https://github.com/xlabtg/TONAIAgent/issues/506)
 
 ## Problem
 OpenSanctions `/match` returns `score` as a float in [0,1], but the provider filters `r.score >= this.minScore` with `minScore` defaulted to 70, and emits `matchScore: Math.round(match.score)` ∈ {0,1} which the consuming screener compares against a default threshold of 85. No real match can pass either comparison.

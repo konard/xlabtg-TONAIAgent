@@ -5,7 +5,7 @@
 **Stage:** Stage 4 — Market data & connector integrity
 **Suggested labels:** `bug`, `reliability`, `severity:low`, `area:market-data`, `stage:4-connector-integrity`, `audit:logic-review-v3`
 **Location:** `core/market-data/base/config/assets.ts:60`
-**Filed as:** _ready to file_
+**Filed as:** [#520](https://github.com/xlabtg/TONAIAgent/issues/520)
 
 ## Problem
 `BINANCE_SYMBOLS['USDT'] = 'USDTBUSD'` maps USDT to a BUSD pair Binance delisted, so any fallback lookup for USDT targets a symbol Binance no longer serves.

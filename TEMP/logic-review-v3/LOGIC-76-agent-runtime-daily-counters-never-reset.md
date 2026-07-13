@@ -5,7 +5,7 @@
 **Stage:** Stage 3 — Runtime concurrency & daily-limit resets
 **Suggested labels:** `bug`, `reliability`, `severity:medium`, `area:runtime`, `stage:3-runtime-concurrency`, `audit:logic-review-v3`
 **Location:** `core/agents/agent-runtime/orchestrator.ts:712-713,736-737` (checks `:587`, `:595`)
-**Filed as:** _ready to file_
+**Filed as:** [#524](https://github.com/xlabtg/TONAIAgent/issues/524)
 
 ## Problem
 `dailyGasUsed` and `dailyTransactionCount` are incremented on every executed cycle (both in the simulation path, :712-713, and the real on-chain path, :736-737) and compared against `maxDailyGasBudgetNano` / `maxTransactionsPerDay` in `stepValidateRisk`. But there is no `dailyReset` / `dailyWindow` field or any reset logic anywhere — a search of the orchestrator finds no assignment that ever zeroes these counters. The values only grow.

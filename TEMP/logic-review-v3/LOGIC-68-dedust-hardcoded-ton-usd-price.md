@@ -5,7 +5,7 @@
 **Stage:** Stage 4 — Market data & connector integrity
 **Suggested labels:** `bug`, `financial`, `severity:high`, `area:market-data`, `stage:4-connector-integrity`, `audit:logic-review-v3`
 **Location:** `core/market-data/base/connectors/dedust.ts:486-490`
-**Filed as:** _ready to file_
+**Filed as:** [#516](https://github.com/xlabtg/TONAIAgent/issues/516)
 
 ## Problem
 In `convertToUsd`, a TON-quoted price is converted with `return price * 5.0` — a literal placeholder TON/USD rate — on the live getPrice path. The constant is never sourced from any real market feed, so every TON-quoted token is valued against a fixed, fictional TON price.

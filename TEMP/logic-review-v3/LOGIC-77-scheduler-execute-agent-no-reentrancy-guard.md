@@ -5,7 +5,7 @@
 **Stage:** Stage 3 — Runtime concurrency & daily-limit resets
 **Suggested labels:** `bug`, `reliability`, `severity:medium`, `area:runtime`, `stage:3-runtime-concurrency`, `audit:logic-review-v3`
 **Location:** `core/runtime/agent-scheduler.ts:414-470` (triggerNow `:315-327`)
-**Filed as:** _ready to file_
+**Filed as:** [#525](https://github.com/xlabtg/TONAIAgent/issues/525)
 
 ## Problem
 `executeAgent`'s entry guard checks `scheduled.isPaused` but not `scheduled.isRunning`. It then sets `isRunning = true` and `currentExecutions++`, and in `finally` sets `isRunning = false` and `currentExecutions--`. `triggerNow` clears the pending timer and awaits `executeAgent` without checking whether a cycle is already running for that agent.

@@ -5,7 +5,7 @@
 **Stage:** Stage 3 — Runtime concurrency & daily-limit resets
 **Suggested labels:** `bug`, `reliability`, `severity:medium`, `area:runtime`, `stage:3-runtime-concurrency`, `audit:logic-review-v3`
 **Location:** `core/runtime/agent-manager.ts:361-372,538-570` (live-ref at `core/runtime/agent-state.ts:364-374`)
-**Filed as:** _ready to file_
+**Filed as:** [#526](https://github.com/xlabtg/TONAIAgent/issues/526)
 
 ## Problem
 `triggerAgent` calls `executeAgentCycle` directly, outside the scheduler that serializes cycles via `isRunning` / `currentExecutions`. `executeAgentCycle` obtains the live stored state via `stateManager.requireAgent`, which returns the object itself (not a copy — contrast `getAgent`, which spreads into a fresh object), and then mutates it (`incrementCycleCounts`, `updatePositions`, `addTradeRecord`) with no in-flight guard.

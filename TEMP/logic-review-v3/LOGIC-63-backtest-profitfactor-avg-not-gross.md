@@ -5,7 +5,7 @@
 **Stage:** Stage 5 — Strategy / backtest / optimizer integrity
 **Suggested labels:** `bug`, `financial`, `severity:medium`, `area:strategy`, `stage:5-strategy-integrity`, `audit:logic-review-v3`
 **Location:** `core/strategies/engine/backtesting.ts:803-809` (used at `:843`; correct formula exists at `core/strategies/backtesting/performance-analysis.ts:418-420`)
-**Filed as:** _ready to file_
+**Filed as:** [#511](https://github.com/xlabtg/TONAIAgent/issues/511)
 
 ## Problem
 The engine backtest computes `profitFactor = avgWin / avgLoss` using per-trade averages instead of the standard `grossProfit / grossLoss`. Because both sides are averaged over their own trade counts, the number of winning vs. losing trades is cancelled out and ignored.

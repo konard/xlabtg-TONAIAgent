@@ -5,7 +5,7 @@
 **Stage:** Stage 2 — Funds & accounting correctness
 **Suggested labels:** `bug`, `financial`, `severity:high`, `area:runtime`, `stage:2-funds-accounting`, `audit:logic-review-v3`
 **Location:** `core/agents/agent-runtime/orchestrator.ts:583` (init `:192`)
-**Filed as:** _ready to file_
+**Filed as:** [#523](https://github.com/xlabtg/TONAIAgent/issues/523)
 
 ## Problem
 `stepValidateRisk` gates trading on `state.dailyLoss < config.riskLimits.maxDailyLossNano`, but `state.dailyLoss` is only ever set to `BigInt(0)` at initialization (:192) and is never incremented anywhere in the runtime. On-chain execution updates `dailyGasUsed` and `dailyTransactionCount` but never touches `dailyLoss`. A repo search of `core/agents/agent-runtime/orchestrator.ts` confirms `dailyLoss` appears only at the init site and the comparison site.

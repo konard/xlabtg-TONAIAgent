@@ -698,6 +698,19 @@ describe('DefaultMarketDataService - getPrice', () => {
     expect(result.price.source).toBe('mock'); // fallbackMock returns 'mock' source
   });
 
+  it('should cache fallback price without re-hitting either provider', async () => {
+    primaryMock.shouldFail = true;
+
+    const firstResult = await service.getPrice('BTC');
+    const secondResult = await service.getPrice('BTC');
+
+    expect(firstResult.fromCache).toBe(false);
+    expect(firstResult.usedFallback).toBe(true);
+    expect(secondResult.fromCache).toBe(true);
+    expect(primaryMock.callCount).toBe(1);
+    expect(fallbackMock.callCount).toBe(1);
+  });
+
   it('should throw ALL_PROVIDERS_FAILED when both providers fail', async () => {
     primaryMock.shouldFail = true;
     fallbackMock.shouldFail = true;
@@ -718,13 +731,15 @@ describe('DefaultMarketDataService - getPrice', () => {
 
 describe('DefaultMarketDataService - getTicker', () => {
   let primaryMock: MockProvider;
+  let fallbackMock: MockProvider;
   let service: DefaultMarketDataService;
 
   beforeEach(() => {
     primaryMock = new MockProvider('coingecko');
+    fallbackMock = new MockProvider('binance');
     service = createMarketDataService(
       { primaryProvider: 'coingecko', fallbackProvider: 'binance' },
-      { coingecko: primaryMock, binance: new MockProvider('binance') }
+      { coingecko: primaryMock, binance: fallbackMock }
     );
   });
 
@@ -739,6 +754,16 @@ describe('DefaultMarketDataService - getTicker', () => {
     await service.getTicker('ETH');
     await service.getTicker('ETH');
     expect(primaryMock.callCount).toBe(1);
+  });
+
+  it('should cache fallback ticker without re-hitting either provider', async () => {
+    primaryMock.shouldFail = true;
+
+    await service.getTicker('ETH');
+    await service.getTicker('ETH');
+
+    expect(primaryMock.callCount).toBe(1);
+    expect(fallbackMock.callCount).toBe(1);
   });
 });
 

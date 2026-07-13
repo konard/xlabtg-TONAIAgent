@@ -8,7 +8,7 @@
  * Fail-closed: throws on provider unreachability so callers can block trades.
  */
 
-import type { SanctionsMatch, SanctionsList } from '../sanctions';
+import type { SanctionsEntityType, SanctionsMatch, SanctionsList } from '../sanctions';
 
 // ============================================================================
 // Types
@@ -27,6 +27,7 @@ export interface OpenSanctionsConfig {
 export interface OpenSanctionsMatch {
   id: string;
   name: string;
+  schema: string;
   score: number;
   datasets: string[];
   properties: {
@@ -50,6 +51,7 @@ interface OpenSanctionsApiResponse {
   results: Array<{
     id: string;
     caption: string;
+    schema: string;
     score: number;
     datasets: string[];
     properties: Record<string, string[]>;
@@ -73,7 +75,20 @@ function datasetToList(dataset: string): SanctionsList {
   for (const [prefix, list] of Object.entries(DATASET_TO_LIST)) {
     if (dataset.startsWith(prefix)) return list;
   }
-  return 'ofac_sdn';
+  return 'other';
+}
+
+function schemaToEntityType(schema: string): SanctionsEntityType {
+  switch (schema) {
+    case 'Person':
+      return 'individual';
+    case 'Vessel':
+      return 'vessel';
+    case 'Aircraft':
+      return 'aircraft';
+    default:
+      return 'entity';
+  }
 }
 
 // ============================================================================
@@ -142,6 +157,7 @@ export class OpenSanctionsProvider {
       .map((r) => ({
         id: r.id,
         name: r.caption,
+        schema: r.schema,
         score: Math.round(r.score * 100),
         datasets: r.datasets,
         properties: {
@@ -176,7 +192,7 @@ export class OpenSanctionsProvider {
       return {
         list,
         entityName: match.name,
-        entityType: 'individual' as const,
+        entityType: schemaToEntityType(match.schema),
         matchScore: match.score,
         sanctionedSince,
         programs: match.properties.program ?? [],

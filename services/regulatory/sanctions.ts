@@ -34,7 +34,7 @@ import {
 // Types
 // ============================================================================
 
-export type SanctionsList = 'ofac_sdn' | 'eu_consolidated' | 'un_security_council' | 'uk_hm_treasury';
+export type SanctionsList = 'ofac_sdn' | 'eu_consolidated' | 'un_security_council' | 'uk_hm_treasury' | 'other';
 
 export type SanctionsEntityType = 'individual' | 'entity' | 'vessel' | 'aircraft' | 'crypto_address';
 

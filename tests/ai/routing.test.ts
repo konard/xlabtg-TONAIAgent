@@ -4,12 +4,101 @@
  * Unit tests for the routing and task analysis system.
  */
 
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { TaskAnalyzer, ModelScorer, createAIRouter } from '../../core/ai/routing';
-import { ProviderRegistry } from '../../core/ai/providers/base';
+import { BaseProvider, ProviderRegistry } from '../../core/ai/providers/base';
 import { createGroqProvider } from '../../core/ai/providers/groq';
 import { createAnthropicProvider } from '../../core/ai/providers/anthropic';
-import { CompletionRequest } from '../../core/ai/types';
+import {
+  CompletionRequest,
+  CompletionResponse,
+  ModelInfo,
+  ProviderType,
+  StreamCallback,
+} from '../../core/ai/types';
+
+class TestProvider extends BaseProvider {
+  constructor(
+    private readonly providerType: ProviderType,
+    private readonly model: ModelInfo
+  ) {
+    super({ type: providerType, maxRetries: 0 });
+  }
+
+  get type(): ProviderType {
+    return this.providerType;
+  }
+
+  get name(): string {
+    return `Test ${this.providerType}`;
+  }
+
+  async getModels(): Promise<ModelInfo[]> {
+    return [this.model];
+  }
+
+  async isAvailable(): Promise<boolean> {
+    return true;
+  }
+
+  protected async executeCompletion(): Promise<CompletionResponse> {
+    return this.createResponse();
+  }
+
+  protected async executeStreamingCompletion(
+    _request: CompletionRequest,
+    callback: StreamCallback
+  ): Promise<CompletionResponse> {
+    callback({
+      id: 'test-chunk',
+      provider: this.type,
+      model: this.model.id,
+      delta: { content: 'fallback response' },
+      finishReason: 'stop',
+    });
+    return this.createResponse();
+  }
+
+  protected getDefaultModel(): string {
+    return this.model.id;
+  }
+
+  private createResponse(): CompletionResponse {
+    return {
+      id: 'test-response',
+      provider: this.type,
+      model: this.model.id,
+      choices: [
+        {
+          index: 0,
+          message: { role: 'assistant', content: 'fallback response' },
+          finishReason: 'stop',
+        },
+      ],
+      usage: { promptTokens: 1, completionTokens: 1, totalTokens: 2 },
+      latencyMs: 1,
+      finishReason: 'stop',
+    };
+  }
+}
+
+function createTestModel(provider: ProviderType, id: string): ModelInfo {
+  return {
+    id,
+    provider,
+    name: id,
+    contextWindow: 4096,
+    inputCostPer1kTokens: 0,
+    outputCostPer1kTokens: 0,
+    supportedFeatures: ['chat', 'streaming'],
+    capabilities: {
+      speed: 'fast',
+      reasoning: 'standard',
+      coding: 'standard',
+      costTier: 'free',
+    },
+  };
+}
 
 // ============================================================================
 // Task Analyzer Tests
@@ -363,5 +452,46 @@ describe('AIRouter', () => {
 
     // Groq should be highly scored as primary
     expect(['groq', 'anthropic']).toContain(decision.provider);
+  });
+
+  it('should stream from a configured fallback when the routed provider becomes unavailable', async () => {
+    const routedProvider = new TestProvider(
+      'groq',
+      createTestModel('groq', 'routed-model')
+    );
+    const configuredFallback = new TestProvider(
+      'openai',
+      createTestModel('openai', 'fallback-model')
+    );
+    const fallbackStream = vi.spyOn(configuredFallback, 'stream');
+    const fallbackRegistry = new ProviderRegistry();
+    fallbackRegistry.register(routedProvider);
+
+    const router = createAIRouter(fallbackRegistry, {
+      mode: 'balanced',
+      fallbackChain: ['openai'],
+    });
+    const route = await router.route({
+      messages: [{ role: 'user', content: 'Hello' }],
+    });
+    expect(route.provider).toBe('groq');
+
+    fallbackRegistry.register(configuredFallback);
+    vi.spyOn(router, 'route').mockResolvedValue(route);
+    vi.spyOn(routedProvider, 'getStatus').mockReturnValue({
+      type: 'groq',
+      available: false,
+      lastChecked: new Date(),
+      circuitState: 'closed',
+    });
+
+    const response = await router.stream(
+      { messages: [{ role: 'user', content: 'Hello' }] },
+      () => undefined
+    );
+
+    expect(response.provider).toBe('openai');
+    expect(response.model).toBe('fallback-model');
+    expect(fallbackStream).toHaveBeenCalledOnce();
   });
 });

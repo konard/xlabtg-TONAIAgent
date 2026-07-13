@@ -952,6 +952,45 @@ describe('Delegation Engine', () => {
     expect(response.reason).toBe('Too busy');
   });
 
+  it('should create a new delegation after a retryable failure', async () => {
+    const task = createTask({
+      type: 'trade_execution',
+      creatorId: 'agent_1',
+      description: 'Execute trade',
+      maxRetries: 1,
+    });
+
+    const delegation = await delegationEngine.createDelegation(
+      'agent_1',
+      task,
+      'agent_2',
+      undefined,
+      { timeout: 30000 }
+    );
+
+    await delegationEngine.failDelegation(delegation.id, 'Temporary failure');
+
+    const [retry] = delegationEngine.getActiveDelegations();
+    expect(retry).toMatchObject({
+      taskId: task.id,
+      fromAgentId: 'agent_1',
+      toAgentId: 'agent_2',
+      status: 'pending',
+      constraints: { timeout: 30000 },
+    });
+    expect(retry.id).not.toBe(delegation.id);
+    expect(task.retryCount).toBe(1);
+    expect(delegationEngine.getHistory()).toContainEqual(
+      expect.objectContaining({ id: delegation.id, status: 'failed' })
+    );
+
+    await delegationEngine.failDelegation(retry.id, 'Permanent failure');
+
+    expect(delegationEngine.getActiveDelegations()).toHaveLength(0);
+    expect(task.retryCount).toBe(1);
+    expect(task.status).toBe('failed');
+  });
+
   it('should track statistics', async () => {
     const task = createTask({
       type: 'trade_execution',

@@ -1079,6 +1079,44 @@ describe('Capital Manager', () => {
     expect(stats.totalPerformance).toBe(100);
   });
 
+  describe('loss accounting (LOGIC-62)', () => {
+    it('keeps pool balances unchanged after an equal gain and loss', async () => {
+      await capitalManager.requestCapital(
+        createCapitalRequest({
+          agentId: 'agent_1',
+          amount: 1000,
+          purpose: 'Trading',
+        })
+      );
+
+      const pool = await capitalManager.getPool('test_pool');
+      const startingTotalCapital = pool?.totalCapital;
+      const startingAvailableCapital = pool?.availableCapital;
+
+      await capitalManager.updatePerformance('agent_1', 100);
+      await capitalManager.updatePerformance('agent_1', -100);
+
+      expect(pool?.totalCapital).toBe(startingTotalCapital);
+      expect(pool?.availableCapital).toBe(startingAvailableCapital);
+    });
+
+    it('floors pool balances at zero after a loss exceeds its capital', async () => {
+      await capitalManager.requestCapital(
+        createCapitalRequest({
+          agentId: 'agent_1',
+          amount: 1000,
+          purpose: 'Trading',
+        })
+      );
+
+      await capitalManager.updatePerformance('agent_1', -20000);
+
+      const pool = await capitalManager.getPool('test_pool');
+      expect(pool?.totalCapital).toBe(0);
+      expect(pool?.availableCapital).toBe(0);
+    });
+  });
+
   // Regression for LOGIC-41: under capital contention, partial allocation must
   // favour higher-priority requests per the documented `1 = highest` ordering.
   describe('partial allocation priority (LOGIC-41)', () => {

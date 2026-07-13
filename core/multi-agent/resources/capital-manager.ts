@@ -218,11 +218,9 @@ export class DefaultCapitalManager implements CapitalManager {
         if (allocation.agentId === agentId && allocation.status === 'active') {
           allocation.performance += pnl;
 
-          // Update pool based on performance
-          if (pnl > 0) {
-            pool.totalCapital += pnl;
-            pool.availableCapital += pnl;
-          }
+          // Realized gains and losses affect pool balances symmetrically.
+          pool.totalCapital = Math.max(0, pool.totalCapital + pnl);
+          pool.availableCapital = Math.max(0, pool.availableCapital + pnl);
 
           pool.lastUpdated = new Date();
 
